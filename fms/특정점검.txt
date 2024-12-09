@@ -1,0 +1,2309 @@
+# 특정점검
+1.목록
+ - 상단필터링 버튼
+	-> 우선 : specialChkData.preuseChkWhy 값이 있는 대상 필터링
+ - 목록
+ - 주소
+	-> 도로명
+	 - specialChkData.newRoadNm || ' ' || specialChkData.newAddrM || '-' || specialChkData.newAddrS || ' ' || specialChkData.specialNm
+	-> 지번
+	 - specialChkData.town ||' '|| specialChkData.addr1M ||'-'|| specialChkData.addr1S ||' '|| specialChkData.specialNm
+ - 압력 : specialChkData.pressFlag (L:저압, M:중압, R:중간압, else:null)
+ - 처리결과 : specialChkData.chkRslt ('20':'적합', '21':'부적합', '40':'제외',  else:'미검')
+
+2. 개요
+ - 상단 버튼 : 개선권고(specialChkNoGoodInfo.chkExecNum과 일치하는 specialChkData.chkExecNum이 있는 경우 활성화 : 개선권고 개요 화면으로 이동)
+ - specialChkData.specialNm - 특정명
+ - specialChkData.safeManagerNm(specialChkData.manageCpDdd+specialChkData.manageCpExn+specialChkData.manageCpNum)
+	-> 안전관리자명, 안전관리자 휴대전화번호 (전화 아이콘 클릭 시 셋팅 전화번호로 call)
+ - specialChkData.repreNm(specialChkData.repreCpDdd+specialChkData.repreCpExn+specialChkData.repreCpNum)
+	-> 대표자명, 대표자 휴대전화번호 (전화 아이콘 클릭 시 셋팅 전화번호로 call)
+ - 주소 표기 (기본표기 도로명, 주소 클릭 시 지번으로 변경표기)
+	-> 도로명 specialChkData.county || " " || specialChkData.newRoadNm || " " || specialChkData.newAddrM || "-" || specialChkData.newAddrS
+	-> 지번 specialChkData.county || " " || specialChkData.town || " " || specialChkData.addr1M || "-" || specialChkData.addr1S
+ - 특정번호 : specialChkData.specialNum
+ - 완성검사일 : specialChkData.complInspectYmd | 예정량 : specialChkData.mmUsePlanQty
+ - 점검대상
+  -> 구분 : specialChkGovRegInfo.govRegtrFlag (10:정압기, else:조정기)
+  -> 제작사 : specialChkGovRegInfo.makerNm
+  -> 모델명 : specialChkGovRegInfo.modelNm
+  -> 분해*청소일 : specialChkGovRegInfo.govRegtrFlag에 따라 분기 (값이 없는 경우 "입력" 메세지 표기)
+	- 10(정압기) : specialChkGovRegInfo.newDisjointChkYmd
+	- 20(조정기) : specialChkGovRegInfo.newFilterCleanYmd (newFilterCleanYmd값이 11111111인 경우 "확인불가" 표기
+	- 값이 없는 경우 "입력" 선택 시 (미입력 후 점검시작 시 알림메세지 출력 후 팝업)
+	 -> 정압기 : 정압기 분해점검 정보 팝업 (입력없이 점검시작을 한 경우 : 정압기 분해점검일을 확인하세요 메세지 출력 후 팝업)
+	 -> 조정기 : 조정기 필터청소 정보 팝업 (입력없이 점검시작을 한 경우 : 조정기 필터청소일자를 확인하세요 메세지 출력 후 팝업)
+ - 정압기 분해점검 정보
+  -> 기본정보
+	- 제작사 : specialChkGovRegInfo.makerNm
+	- 모델 : specialChkGovRegInfo.modelNm
+	- 설치일자 : specialChkGovRegInfo.instYmd
+	- 분해점검사 : specialChkGovRegInfo.disjointChkFirmNm
+	- 분해점검일 : specialChkGovRegInfo.disjointChkYmd
+	- 분해점검등록일자 : specialChkGovRegInfo.crtDtm (yyyymmdd표기)
+  -> 분해점검 입력
+	- 이전시행 적용 버튼 : 기존 specialChkGovRegInfo.disjointChkFirmNm, specialChkGovRegInfo.disjointChkYmd값 셋팅
+	- 분해점검사 : specialChkGovRegInfo.disjointChkFirmCd, specialChkGovRegInfo.disjointChkFirmNm, 공통코드-commonCode.codeId='C30066'이며, commonCode.codeItem not in ('100','320','330','360','370','380','400','430','999')인 commonCode.itemKname값 표기 및 셋팅
+	- 분해점검일 : specialChkGovRegInfo.disjointChkYmd
+	- 상세위치 : specialChkGovRegInfo.detaLoc
+  -> 저장
+	- specialChkGovRegInfo.disjointChkFirmNm	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값 (콤보박스 commonCode.itemKname)
+	- specialChkGovRegInfo.disjointChkFirmCd	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값 (콤보박스 commonCode.codeItem)
+	- specialChkGovRegInfo.disjointChkYmd	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값
+	- specialChkGovRegInfo.detaLoc	-> 상세위치 입력값
+	- specialChkGovRegInfo.upEmpid	-> init-data.employeeData.employeeId
+	- specialChkGovRegInfo.pdaIp	-> init-data.employeeData.equipTelNum
+	- specialChkGovRegInfo.sendYn	-> 'S'
+	- 특정점검 완료 시 전송 api호출
+ - 조정기 필터청소 정보
+  -> 기본정보
+	- 제작사 : specialChkGovRegInfo.makerNm
+	- 모델 : specialChkGovRegInfo.modelNm
+	- 설치일자 : specialChkGovRegInfo.instYmd
+	- 위치구분 : specialChkGovRegInfo.regtrLocFlag (10:내부, 20:외부) -> 수정가능
+	- 규격 : specialChkGovRegInfo.regtrStd -> 공통코드-commonCode.codeId='C30111' codeItem, itemKname 콤보박스 -> 수정가능
+	- 상세위치 : specialChkGovRegInfo.detaLoc
+  -> 필터청소 이력
+	- 이전시행업체 : specialChkGovRegInfo.filterCleanFirmNm
+	- 이전시행일자 : specialChkGovRegInfo.filterCleanYmd
+  -> 실적입력
+	- 이전시행 적용 버튼 : 하단 값 셋팅 -> specialChkGovRegInfo.filterCleanFirmNm, specialChkGovRegInfo.filterCleanFirmCd 값 셋팅
+	- 시행업체 : specialChkGovRegInfo.filterCleanFirmCd, specialChkGovRegInfo.filterCleanFirmNm -> 공통코드-commonCode.codeId='C30066'이며, commonCode.codeItem not in ('100','320','330','360','370','380','400','430','999')인 commonCode.itemKname값 표기
+	- 시행일자 : specialChkGovRegInfo.filterCleanYmd
+  -> 저장
+	- specialChkGovRegInfo.filterCleanFirmNm	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값 (콤보박스 commonCode.itemKname)
+	- specialChkGovRegInfo.filterCleanFirmCd	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값 (콤보박스 commonCode.codeItem)
+	- specialChkGovRegInfo.filterCleanYmd	-> "이전시행적용"건은 유지, 직접 값 입력건은 화면입력값
+	- specialChkGovRegInfo.regtrLocFlag	-> 입력값 셋팅
+	- specialChkGovRegInfo.regtrStd	-> 입력값 셋팅 (commonCode.codeItem)
+	- specialChkGovRegInfo.upEmpid	-> init-data.employeeData.employeeId
+	- specialChkGovRegInfo.pdaIp	-> init-data.employeeData.equipTelNum
+	- specialChkGovRegInfo.sendYn	-> 'S'
+	- 특정점검 완료 시 전송 api호출
+ 
+ - 점검이력 : specialChkData.befoHalfChkRslt (화면코드 : specialChk_RSLT) | specialChkData.befoHalfChkYmd
+  -> specialChkData.befoHalfChkRslt != '21' 인 경우 
+  -> specialChkData.befoHalfChkRslt = '21'인 경우  부적합 상세내역 출력 (specialChkNoGoodDetalInfo객체, specialChkData.chkExecNum과 일치하는 항목 표기/ n개 이상이면 항목별 표기 / specialChkNoGoodDetalInfo.visitDtm 최근순)
+  -> 점검단위 : specialChkNoGoodDetalInfo.chkSecNm
+  -> 세부항목 : specialChkNoGoodDetalInfo.notPassItemNm
+  -> 연소기번호 : specialChkNoGoodDetalInfo.burnerNum
+  -> 방문일시 : specialChkNoGoodDetalInfo.visitDtm
+  -> 개선예정일자 : specialChkNoGoodDetalInfo.betterPlanYmd
+  -> 개선차수 : specialChkNoGoodDetalInfo.betterDegree (null이면 "0차수"표기)
+  -> 개선여부 : specialChkNoGoodDetalInfo.betterEndYmd (null이면 "미개선"표기, null이 아니면 "개선"표기 및 값표기)
+
+ - 점검시작 
+	-> (specialChkData.preuseChkWhy='10' || specialChkData.preuseChkWhy='30') && (specialChkData.endYn!='Y'&&specialChkData.endYn!='S')일때
+	    specialChkNoGoodInfo객체 항목이 존재하는 경우 "우선점검 대상입니다. 개선권고관리를 먼저 진행해주세요" 메세지출력
+	-> specialChkData.chkTimeFrom에 현재시간 셋팅
+
+3. 점검시작
+ - 상단 점검step별 버튼 변수셋팅 : faciRslt, mtrRslt, infoRslt (각 항목별 점검 완료되면 'Y'로 셋팅, 최종완료validation체크에서 미완료건 체크)
+
+ - 특정시설
+  -> 정압기 점검항목 (화면코드-specialChk_SPECIAL_GOV)
+	-> 부적합 항목 생성을 위한 specialChkNoGoodInfo객체에 사전 셋팅
+	-> specialChkNoGoodInfo.chkExecNum	-> specialChkData.chkExecNum
+	-> specialChkNoGoodInfo.chkSecCd	-> '21'  
+	-> specialChkNoGoodInfo.mtrNum		-> ''
+	-> specialChkNoGoodInfo.burnerNum	-> ''  
+	-> specialChkNoGoodInfo.chkSecNm	-> '정압기'
+  -> 조정기 점검항목 (화면코드-specialChk_SPECIAL_REGTR)
+	-> specialChkNoGoodInfo.chkExecNum	-> specialChkData.chkExecNum
+	-> specialChkNoGoodInfo.chkSecCd	-> '23'  
+	-> specialChkNoGoodInfo.mtrNum		-> ''
+	-> specialChkNoGoodInfo.burnerNum	-> ''  
+	-> specialChkNoGoodInfo.chkSecNm	-> '조정기'
+  -> 배관점검 점검항목 (화면코드-specialChk_SPECIAL_PIPE)
+	-> specialChkNoGoodInfo.chkExecNum	-> specialChkData.chkExecNum
+	-> specialChkNoGoodInfo.chkSecCd	-> '10'  
+	-> specialChkNoGoodInfo.mtrNum		-> ''
+	-> specialChkNoGoodInfo.burnerNum	-> ''  
+	-> specialChkNoGoodInfo.chkSecNm	-> '배관'
+  -> 배관외점검 점검항목 (화면코드-specialChk_SPECIAL_PIPEEX)
+	-> specialChkNoGoodInfo.chkExecNum	-> specialChkData.chkExecNum
+	-> specialChkNoGoodInfo.chkSecCd	-> '70'  
+	-> specialChkNoGoodInfo.mtrNum		-> ''
+	-> specialChkNoGoodInfo.burnerNum	-> ''  
+	-> specialChkNoGoodInfo.chkSecNm	-> '배관외'
+  -> 홍보물 : specialChkData.advDistYn (화면코드-specialChk_ADV, 콤보박스 표기)
+
+	- 부적합 버튼 클릭 가능여부
+	-> 부적합 우선점검(specialChkNoGoodDetalInfo.preChkObjYn = Y) -> 우선점검 부적합 항ㅁ고은 제외 할 수 없습니다. 개선권고 일자를 입력하시겠습니까? 메세지출력, 아니오/예-> 개선권고 화면이동
+
+	- 부적합 항목이 선택된 경우 사진촬영
+	- 사진촬영 후 해당 사진파일명 셋팅     
+	-> 1_specialChkNoGoodInfo.chkExecNum_specialChkNoGoodInfo.mtrNum(null=000000000)_specialChkNoGoodInfo.burnerNum(null=000000)_specialChkNoGoodInfo.chkSecCd_specialChkNoGoodInfo.notPassItemCd
+
+	- 폴더명 : PHOTO_SPECIALCHK 저장
+	- 부적합 항목(specialChkNoGoodInfo)객체에 항목 추가
+	-> specialChkNoGoodInfo.chkExecNum		-> 사전 셋팅값
+	-> specialChkNoGoodInfo.chkSecCd		-> 사전 셋팅값
+	-> specialChkNoGoodInfo.mtrNum			-> 사전 셋팅값, 없으면 '000000000'
+	-> specialChkNoGoodInfo.burnerNum		-> 사전 셋팅값, 없으면 '000000'
+	-> specialChkNoGoodInfo.notPassItemCd	-> 선택된 부적합 항목코드
+	-> specialChkNoGoodInfo.objYm			-> specialChkData.objYm
+	-> specialChkNoGoodInfo.bldNum			-> specialChkData.bldNum
+	-> specialChkNoGoodInfo.chkYear			-> specialChkData.chkYear
+	-> specialChkNoGoodInfo.chkOrder		-> specialChkData.chkOrder
+	-> specialChkNoGoodInfo.chkType			-> specialChkData.chkType
+	-> specialChkNoGoodInfo.specialNum			-> specialChkData.specialNum  
+	-> specialChkNoGoodInfo.chkSecNm		-> 사전 셋팅값
+	-> specialChkNoGoodInfo.notPassItemNm	-> 선택된 부적합 항목명
+	-> specialChkNoGoodInfo.visitDtm		-> yyyymmddhh24miss
+	-> specialChkNoGoodInfo.betterPlanYmd	-> 현재일기준 + 1달
+	-> specialChkNoGoodInfo.sendYn			-> 'S'
+	-> specialChkNoGoodInfo.betterYn		-> 'N'
+	-> specialChkNoGoodInfo.pdaIp			-> init-data.employeeData.equipTelNum
+	-> specialChkNoGoodInfo.updEmpId		-> init-data.employeeData.employeeId
+	-> specialChkNoGoodInfo.planYm	-> specialChkData.planYm
+	-> 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+	-> 부적합 항목 추가건은 점검완료 시 부적합대상 객체 추가생성 후 /api/send/specialChk/specialChkNoGoodRsltReg
+	- 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+
+  -> 저장
+	- specialChkData.advDistYn -> 선택값 (배포:Y, 미배포:N)
+	- specialChkData.specialRslt -> 부적합항목 없으면 'Y', 있으면 'N'
+	- faciRslt 변수값 'Y' 셋팅
+
+ - 
+
+ - 계량기
+ -> 계량기 목록 (specialChkMtrInfo객체 항목 나열)
+	- 상호명 specialChkMtrInfo.firmNm
+	- 모델명 specialChkMtrInfo.mtrModelNm | 등급 specialChkMtrInfo.mtrGrd+'등급' | 기물번호 specialChkMtrInfo.mtrIdNum
+	- 상품 specialChkMtrInfo.prodNm | 상태 specialChkMtrInfo.mtrSupplySts
+	- 점검제외 : specialChkMtrInfo.chkExcepWhy (공통코드-commonCode.codeId='C30016', common.codeItem not in ('40','50','60','70','90') 콤보박스 표기 / codeItem, itemKname)
+	- 점검시작 : 계량기점검화면
+		- 계량기점검 
+		- 계량기점검 항목 (화면코드-specialChk_SPECIAL_GM) - specialChkMtrInfo.chkSecCd='22', specialChkMtrInfo.chkSecNm='계량기' 셋팅
+		- 차단장치 항목 (화면코드-specialChk_SPECIAL_DASALARM) - specialChkMtrInfo.chkSecCd='24', specialChkMtrInfo.chkSecNm='차단장치' 셋팅		
+		- 배관점검 항목		 
+		  -> 배관매립여부 (아니오/예 버튼표기 -> 예를 누를경우 배관매립 점검항목표기[화면코드:SAFECHK_PIPE_BURY])
+			-> 사진촬영x
+			-> 배관매립점검은 별도 결과 저장을 위한 점검 (부적합항목생성이 아닌 점검결과 저장)
+			-> safeChkBuryHideChkRsltInfo 객체 생성 (또는 기존 수신받을때 해당 객체 내려보냄 / safeChkData.pipeBuryYn = 'Y' 또는 safeChkData.pipeHideYn = 'Y' 인 경우)
+			-> 항목생성
+			-> safeChkBuryHideChkRsltInfo.chkExecNum		-> safeChkData.chkExecNum
+			-> safeChkBuryHideChkRsltInfo.pipeFlag			-> '10'
+			-> safeChkBuryHideChkRsltInfo.gasDampYn			-> 가스누기 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.multiGasMtrYn		-> 다기능가스계량기 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.pipeInspecHoleYn	-> ''
+			-> safeChkBuryHideChkRsltInfo.cutoffInspecHoleYn-> ''
+			-> safeChkBuryHideChkRsltInfo.pipeLocMarkYn		-> 배관위치표시(스티커) 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.chkYear			-> safeChkData.chkYear
+			-> safeChkBuryHideChkRsltInfo.chkOrder			-> safeChkData.chkOrder
+			-> safeChkBuryHideChkRsltInfo.chkType			-> safeChkData.chkType
+			-> safeChkBuryHideChkRsltInfo.mtrNum			-> safeChkMtrInfo.mtrNum
+			-> safeChkBuryHideChkRsltInfo.chkYmd			-> 오늘날짜
+			-> safeChkBuryHideChkRsltInfo.updEmpId			-> init-data.employeeData.employeeId
+			-> safeChkBuryHideChkRsltInfo.pdaIp				-> init-data.employeeData.equipTelNum
+			
+			-> 모든 점검 완료 시  배관매립,배관은폐 점검결과는 /api/send/safeChk/specialChkRsltBuryPipeReg api호출
+
+		  -> 배관은폐여부 (아니오/예 버튼표기 -> 예를 누를경우 배관매립 점검항목표기[화면코드:SAFECHK_PIPE_HIDE])
+			-> 사진촬영x
+			-> 배관은폐점검은 별도 결과 저장을 위한 점검 (부적합항목생성이 아닌 점검결과 저장)
+			-> safeChkBuryHideChkRsltInfo 객체 생성 (또는 기존 수신받을때 해당 객체 내려보냄 / safeChkData.pipeBuryYn = 'Y' 또는 safeChkData.pipeHideYn = 'Y' 인 경우)
+			-> 항목생성
+			-> safeChkBuryHideChkRsltInfo.chkExecNum		-> safeChkData.chkExecNum
+			-> safeChkBuryHideChkRsltInfo.pipeFlag			-> '20'
+			-> safeChkBuryHideChkRsltInfo.gasDampYn			-> 가스누기 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.multiGasMtrYn		-> 다기능가스계량기 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.pipeInspecHoleYn	-> 보호관및점검구 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.cutoffInspecHoleYn-> 누출자동차단장치및점검구 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.pipeLocMarkYn		-> 배관위치표시(스티커) 적/부(Y/N)
+			-> safeChkBuryHideChkRsltInfo.chkYear			-> safeChkData.chkYear
+			-> safeChkBuryHideChkRsltInfo.chkOrder			-> safeChkData.chkOrder
+			-> safeChkBuryHideChkRsltInfo.chkType			-> safeChkData.chkType
+			-> safeChkBuryHideChkRsltInfo.mtrNum			-> safeChkMtrInfo.mtrNum
+			-> safeChkBuryHideChkRsltInfo.chkYmd			-> 오늘날짜
+			-> safeChkBuryHideChkRsltInfo.updEmpId			-> init-data.employeeData.employeeId
+			-> safeChkBuryHideChkRsltInfo.pdaIp				-> init-data.employeeData.equipTelNum
+			
+			-> 모든 점검 완료 시  배관매립,배관은폐 점검결과는 /api/send/safeChk/specialChkRsltBuryPipeReg api호출
+		-> specialChkMtrInfo.compensYn='Y'인 경우 대용량 계량기점검 노출
+			- 대용량계량기점검 항목 (화면코드-specialChk_SPECIAL_COMPENS) - specialChkMtrInfo.chkSecCd='60', specialChkMtrInfo.chkSecNm='대용량 계량기 점검' 셋팅
+			- 보정후(VC) : specialChkMtrInfo.indiVcCur
+			- 보정후(VA) : specialChkMtrInfo.indiVaCur
+			- 계량기(VM) : specialChkMtrInfo.mtrIndiCur
+		-> specialChkMtrInfo.compensYn='N'인 경우 계량기지침 입력 노출
+			- 계량기지침 : specialChkMtrInfo.compensYn (Y:specialChkMtrInfo.mtrIndiCur, N:specialChkMtrInfo.indiVcCur) - 사용량 : 전월지침-입력지침
+			-> 전월지침 : specialChkMtrInfo.compensYn (Y:specialChkMtrInfo.mtrIndi, N:specialChkMtrInfo.indiVc)
+		- 상세위치 : specialChkMtrInfo.mtrDetaLoc (10글자내입력제한)
+		- 상세사진 : PHOTO_SPECIALCHK_DETAIL 폴더 저장, specialChkMtrInfo.chkExecNum_specialChkMtrInfo.mtrNum_specialChkMtrInfo.instPlaceNum 파일명 저장
+		- 저장 		 
+		 -> specialChkMtrInfo.indiVcCur	-> specialChkMtrInfo.compensYn='N'인 경우 계량기지침 입력값 - 'Y'면 화면 입력값
+		 -> specialChkMtrInfo.indiVaCur -> specialChkMtrInfo.compensYn='Y'인 경우 입력값 - 'N'이면 '0'
+		 -> specialChkMtrInfo.mtrIndiCur	-> specialChkMtrInfo.compensYn='Y'인 경우 계량기지침 입력값 - 'N'이면 '0'
+		 -> specialChkMtrInfo.mtrDetaLoc	-> 입력값
+		 -> specialChkMtrInfo.mtrDetaLocPhoto	-> 촬영사진있으면 'Y'
+		 -> specialChkMtrInfo.mtrRslt	-> 'Y' / 부적합이 있는경우 'N'
+
+
+	- 부적합 버튼 클릭 가능여부
+	-> 부적합 우선점검(specialChkNoGoodDetalInfo.preChkObjYn = Y) -> 우선점검 부적합 항목은 제외 할 수 없습니다. 개선권고 일자를 입력하시겠습니까? 메세지출력, 아니오/예-> 개선권고 화면이동
+
+	- 부적합 항목이 선택된 경우 사진촬영
+	- 사진촬영 후 해당 사진파일명 셋팅     
+	-> 1_specialChkNoGoodInfo.chkExecNum_specialChkNoGoodInfo.mtrNum(null=000000000)_specialChkNoGoodInfo.burnerNum(null=000000)_specialChkNoGoodInfo.chkSecCd_specialChkNoGoodInfo.notPassItemCd
+
+	- 폴더명 : PHOTO_SPECIALCHK 저장
+	- 부적합 항목(specialChkNoGoodInfo)객체에 항목 추가
+	-> specialChkNoGoodInfo.chkExecNum		-> specialChkMtrInfo.chkExecNum
+	-> specialChkNoGoodInfo.chkSecCd		-> 항목별 셋팅값
+	-> specialChkNoGoodInfo.mtrNum			-> specialChkMtrInfo.mtrNum
+	-> specialChkNoGoodInfo.burnerNum		-> '000000'
+	-> specialChkNoGoodInfo.notPassItemCd	-> 선택된 부적합 항목코드
+	-> specialChkNoGoodInfo.objYm			-> specialChkData.objYm
+	-> specialChkNoGoodInfo.chkYear			-> specialChkData.chkYear
+	-> specialChkNoGoodInfo.chkOrder		-> specialChkData.chkOrder
+	-> specialChkNoGoodInfo.chkType			-> specialChkData.chkType
+	-> specialChkNoGoodInfo.specialNum			-> specialChkData.specialNum  
+	-> specialChkNoGoodInfo.chkSecNm		-> 항목별 셋팅값
+	-> specialChkNoGoodInfo.notPassItemNm	-> 선택된 부적합 항목명
+	-> specialChkNoGoodInfo.visitDtm		-> yyyymmddhh24miss
+	-> specialChkNoGoodInfo.betterPlanYmd	-> 현재일기준 + 1달
+	-> specialChkNoGoodInfo.sendYn			-> 'S'
+	-> specialChkNoGoodInfo.betterYn		-> 'N'
+	-> specialChkNoGoodInfo.pdaIp			-> init-data.employeeData.equipTelNum
+	-> specialChkNoGoodInfo.updEmpId		-> init-data.employeeData.employeeId
+	-> specialChkNoGoodInfo.planYm	-> specialChkData.planYm
+	-> 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+	-> 부적합 항목 추가건은 점검완료 시 부적합대상 객체 추가생성 후 /api/send/specialChk/specialChkNoGoodRsltReg
+	- 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+
+	- 연소기 (specialChkBoilInfo객체 항목 나열) - 연소기점검은 필수는 아니며, 기본 결과표기값은 적합
+	 -> 종류 : specialChkBoilInfo.burnerModelNm
+	 -> 용량 : specialChkBoilInfo.burnerCapa
+	 -> 위치 : specialChkBoilInfo.instLocNm
+	 -> 결과 : specialChkBoilInfo.burRslt (null 또는 'N'이면 적합, 'Y'면 부적합 표기
+	 -> 결과 선택 시 연소기점검 팝업
+		- 연소기점검항목 (화면코드-specialChk_SPECIAL_BUR) - specialChkNoGoodInfo.chkSecCd = '50', specialChkNoGoodInfo.chkSecNm = '연소기' 셋팅
+
+		- 부적합 버튼 클릭 가능여부
+		-> 부적합 우선점검(specialChkNoGoodDetalInfo.preChkObjYn = Y) -> 우선점검 부적합 항목은 제외 할 수 없습니다. 개선권고 일자를 입력하시겠습니까? 메세지출력, 아니오/예-> 개선권고 화면이동
+
+		- 부적합 항목이 선택된 경우 사진촬영
+		- 사진촬영 후 해당 사진파일명 셋팅     
+		-> 1_specialChkNoGoodInfo.chkExecNum_specialChkNoGoodInfo.mtrNum(null=000000000)_specialChkNoGoodInfo.burnerNum(null=000000)_specialChkNoGoodInfo.chkSecCd_specialChkNoGoodInfo.notPassItemCd
+
+		- 폴더명 : PHOTO_SPECIALCHK 저장
+		- 부적합 항목(specialChkNoGoodInfo)객체에 항목 추가
+		-> specialChkNoGoodInfo.chkExecNum		-> specialChkMtrInfo.chkExecNum
+		-> specialChkNoGoodInfo.chkSecCd		-> 항목별 셋팅값
+		-> specialChkNoGoodInfo.mtrNum			-> specialChkMtrInfo.mtrNum
+		-> specialChkNoGoodInfo.burnerNum		-> specialChkBoilInfo.burnerNum
+		-> specialChkNoGoodInfo.notPassItemCd	-> 선택된 부적합 항목코드
+		-> specialChkNoGoodInfo.objYm			-> specialChkData.objYm
+		-> specialChkNoGoodInfo.chkYear			-> specialChkData.chkYear
+		-> specialChkNoGoodInfo.chkOrder		-> specialChkData.chkOrder
+		-> specialChkNoGoodInfo.chkType			-> specialChkData.chkType
+		-> specialChkNoGoodInfo.specialNum			-> specialChkData.specialNum  
+		-> specialChkNoGoodInfo.chkSecNm		-> 항목별 셋팅값
+		-> specialChkNoGoodInfo.notPassItemNm	-> 선택된 부적합 항목명
+		-> specialChkNoGoodInfo.visitDtm		-> yyyymmddhh24miss
+		-> specialChkNoGoodInfo.betterPlanYmd	-> 현재일기준 + 1달
+		-> specialChkNoGoodInfo.sendYn			-> 'S'
+		-> specialChkNoGoodInfo.betterYn		-> 'N'
+		-> specialChkNoGoodInfo.pdaIp			-> init-data.employeeData.equipTelNum
+		-> specialChkNoGoodInfo.updEmpId		-> init-data.employeeData.employeeId
+		-> specialChkNoGoodInfo.planYm	-> specialChkData.planYm
+		-> 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+		-> 부적합 항목 추가건은 점검완료 시 부적합대상 객체 추가생성 후 /api/send/specialChk/specialChkNoGoodRsltReg
+		- 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+	 -> 신규버튼 (보일러, 연소기 선택 팝업필요)
+		- 보일러 선택
+		 - 보일러 신규 (신규등록은 협의필요건,미작업)
+		  -> 연소기번호 : 채번
+			-> specialChkBoilInfo객체 모든항목에서 아래조건을 필수로하고 나온 조회값 specialChkBoilInfo.burnerNum max값을 찾아 +1을 하거나 null이면 '100001'으로 셋팅
+			-> 위 값을 찾기위한 조건은 specialChkBoilInfo객체에 매칭되는 항목
+				= specialChkBoilInfo.chkExecNum = specialChkData.chkExecNum, specialChkBoilInfo.mtrNum, specialChkBoilInfo.burnerNum의 앞자리가 '1', specialChkBoilInfo.burnerKindNum이 '201' 또는 '301'
+		  -> 종류 : 공통코드-burnerKind객체 필터링하여 콤보박스 (공통코드-burnerKind.burnerKindNum이 '201', '301'인 공통코드-burnerKind.burnerKindNm 표기 -> 선택된 값을 셋팅할때 공통코드-burnerKind.burnerKindNm에 해당하는 공통코드-burnerKind.burnerClassCd, 공통코드-burnerKind.burnerKindNum 값 셋팅필요)
+		  -> 제조사명 : 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.boilerSeq로 오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
+		  -> 모델명 : specialChkBoilInfo.burnerModelNm에 값 셋팅
+		  -> 가스소비량 : specialChkBoilInfo.burnerCapa 값 셋팅, 단위 : specialChkBoilInfo.burnerCapaUnit에 값 셋팅 (화면코드-BOIL_CAPA 콤보박스[셋팅값:name]
+		  -> 설치일자 : 오늘날짜 셋팅 -> specialChkBoilInfo.burnerInstYmd
+		  -> 연소기위치 : specialChkBoilInfo.instLocNm
+		  -> 설치위치 : specialChkBoilInfo.instLoc [화면코드-BOIL_LOC]
+		  -> 제조번호 : specialChkBoilInfo.makeNum
+		  -> 형식 : specialChkBoilInfo.boilerForm 화면코드-BOIL_FORM 콤보박스 표기[셋팅값:name]
+		  -> 시공사
+		  -> 서류접수
+
+		  -> 신규 등록 값 셋팅 (specialChkBoilInfo객체 항목 추가 또는 객체생성)
+		  -> specialChkBoilInfo.chkExecNum				-> specialChkData.chkExecNum
+		  -> specialChkBoilInfo.mtrNum					-> specialChkMtrInfo.mtrNum (specialChkMtrInfo.chkExecNum = specialChkData.chkExecNum)
+		  -> specialChkBoilInfo.burnerNum				-> 채번된값
+		  -> specialChkBoilInfo.burnerKindNum			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerKindNum)
+		  -> specialChkBoilInfo.burnerClassCd			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerClassCd)
+		  -> specialChkBoilInfo.burnerModelNm			-> 모델명 입력값
+		  -> specialChkBoilInfo.burnerCapa				-> 가스소비량 입력값
+		  -> specialChkBoilInfo.burnerCapaUnit			-> 단위 선택값 (code)
+		  -> specialChkBoilInfo.makerNum				-> 제조사 선택값 (공통코드-useMaker.makerNum)
+		  -> specialChkBoilInfo.makerNm				-> 제조사 선택값 (공통코드-useMaker.makerNm)
+		  -> specialChkBoilInfo.burnerInstFirmCd		-> 설치업체 선택값 (공통코드-boilInstFirm.boilInstFirmCd)
+		  -> specialChkBoilInfo.burnerInstYmd			-> 설치일자
+		  -> specialChkBoilInfo.instLoc				-> 설치장소 선택값 (code)
+		  -> specialChkBoilInfo.boilerForm				-> 급배기방식 선택값 (code)  
+		  -> specialChkBoilInfo.chgFlag				-> '1'
+		  -> specialChkBoilInfo.specialNum					-> specialChkData.specialNum		  
+		  -> specialChkBoilInfo.chkType				-> specialChkData.chkType
+		  -> specialChkBoilInfo.chkYear				-> specialChkData.chkYear
+		  -> specialChkBoilInfo.chkOrder				-> specialChkData.chkOrder
+		  -> specialChkBoilInfo.objYm					-> specialChkData.objYm
+		  -> specialChkBoilInfo.planYm					-> specialChkData.planYm
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+		  -> specialChkBoilInfo.updIp					-> init-data.employeeData.equipTelNum
+
+		 - 보일러를 선택 후 수정버튼 클릭 시
+		  - 보일러 수정 (specialChkBoilInfo객체 항목 update)
+		  -> 연소기번호 : specialChkBoilInfo.burnerNum
+		  -> 종류 : specialChkBoilInfo.burnerKindNm (수정불가)
+		  -> 제조사명 : specialChkBoilInfo.makerNum에 해당하는 공통코드-useMaker.makerNm 표기 / 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.boilerSeq로 오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
+		  -> 모델명 : specialChkBoilInfo.burnerModelNm
+		  -> 용량 : specialChkBoilInfo.burnerCapa, 단위 : specialChkBoilInfo.burnerCapaUnit (화면코드-BOIL_CAPA 콤보박스[셋팅값:name] (수정불가)
+		  -> 설치일자 : specialChkBoilInfo.burnerInstYmd
+		  -> 연소기위치 : specialChkBoilInfo.instLocNm
+		  -> 설치위치 : specialChkBoilInfo.instLoc [화면코드-BOIL_LOC]
+		  -> 제조번호 : specialChkBoilInfo.makeNum
+		  -> 형식 : specialChkBoilInfo.boilerForm에 해당하는 화면코드-BOIL_FORM name 표기 / 화면코드-BOIL_FORM 콤보박스 표기[셋팅값:name]
+		  -> 시공사 : specialChkBoilInfo.workFirm
+		  -> 서류접수 : specialChkBoilInfo.workYmd
+
+		  -> 수정된 값 셋팅 (specialChkBoilInfo객체 항목 수정)
+		  -> specialChkBoilInfo.makeNum					-> 제조사 선택값 (공통코드-useMaker.makerNum)
+		  -> specialChkBoilInfo.makerNm					-> 제조사 선택값 (공통코드-useMaker.makerNm))
+		  -> specialChkBoilInfo.burnerModelNm			-> 모델명 입력값 (한글6자, 영문/숫자 20자까지 가능)		  
+		  -> specialChkBoilInfo.burnerInstYmd			-> 입력값
+		  -> specialChkBoilInfo.detaLoc					-> 연소기위치 입력값		  
+		  -> specialChkBoilInfo.instLoc					-> 설치위치 선택값 (code)
+		  -> specialChkBoilInfo.makeNum					-> 입력값
+		  -> specialChkBoilInfo.boilerForm				-> 형식 선택값 (code)  
+		  -> specialChkBoilInfo.chgFlag					-> '2'  
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+		  -> specialChkBoilInfo.updIp					-> init-data.employeeData.equipTelNum
+
+		 - 보일러 선택 후 삭제버튼 클릭 시 (삭제등록은 협의필요건, 미작업)
+		 - 보일러 삭제 (specialChkBoilInfo객체 항목 update) - 신규추가한 보일러 삭제 시 항목 delete
+		  -> specialChkBoilInfo.burnerRemovYmd			-> 오늘일자
+		  -> specialChkBoilInfo.chgFlag				-> '3'
+		  -> specialChkBoilInfo.instFlag				-> '30'
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.updIp					-> init-data.employeeData.equipTelNum
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+
+		- 연소기 선택
+		 - 연소기 신규 (신규등록은 협의필요건,미작업)
+		  -> 연소기번호 : 채번
+			-> specialChkBoilInfo객체 모든항목에서 아래조건을 필수로하고 나온 조회값 specialChkBoilInfo.burnerNum max값을 찾아 +1을 하거나 null이면 '200001'으로 셋팅
+			-> 위 값을 찾기위한 조건은 specialChkBoilInfo객체에 매칭되는 항목
+				= specialChkBoilInfo.chkExecNum = specialChkData.chkExecNum, specialChkBoilInfo.mtrNum, specialChkBoilInfo.burnerNum의 앞자리가 '2', specialChkBoilInfo.burnerKindNum이 '201' 또는 '301'이 아닌 대상
+		  -> 종류 : 공통코드-burnerKind객체 필터링하여 콤보박스 (공통코드-burnerKind.burnerKindNum이 '201', '301'가 아닌 공통코드-burnerKind.burnerKindNm 표기 -> 선택된 값을 셋팅할때 공통코드-burnerKind.burnerKindNm에 해당하는 공통코드-burnerKind.burnerClassCd, 공통코드-burnerKind.burnerKindNum 값 셋팅필요)
+		  -> 가스소비량 : specialChkBoilInfo.burnerCapa 값 셋팅, 단위 : specialChkBoilInfo.burnerCapaUnit에 값 셋팅 (화면코드-BOIL_CAPA 콤보박스[셋팅값:name]  
+		  -> 제조사명 : 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.boilerSeq로 오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
+		  -> 설치일자 : 오늘날짜 셋팅 -> specialChkBoilInfo.burnerInstYmd
+		  
+		  -> 신규 등록 값 셋팅 (specialChkBoilInfo객체 항목 추가 또는 객체생성)
+		  -> specialChkBoilInfo.chkExecNum				-> specialChkData.chkExecNum
+		  -> specialChkBoilInfo.mtrIdNum				-> specialChkMtrInfo.mtrIdNum (specialChkMtrInfo.chkExecNum = specialChkData.chkExecNum)
+		  -> specialChkBoilInfo.mtrNum					-> specialChkMtrInfo.mtrNum (specialChkMtrInfo.chkExecNum = specialChkData.chkExecNum)
+		  -> specialChkBoilInfo.burnerNum				-> 채번된값
+		  -> specialChkBoilInfo.burnerKindNum			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerKindNum)
+		  -> specialChkBoilInfo.burnerClassCd			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerClassCd)
+		  -> specialChkBoilInfo.burnerCapa				-> 가스소비량 입력값
+		  -> specialChkBoilInfo.burnerCapaUnit			-> 단위 선택값 (code)
+		  -> specialChkBoilInfo.makerNum				-> 제조사 선택값 (공통코드-useMaker.makerNum)
+		  -> specialChkBoilInfo.makerNm				-> 제조사 선택값 (공통코드-useMaker.makerNm)
+		  -> specialChkBoilInfo.burnerInstYmd			-> 설치일자
+		  -> specialChkBoilInfo.chgFlag				-> '1'
+		  -> specialChkBoilInfo.bldNum					-> specialChkData.bldNum
+		  -> specialChkBoilInfo.instPlaceNum			-> specialChkData.instPlaceNum
+		  -> specialChkBoilInfo.chkType				-> specialChkData.chkType
+		  -> specialChkBoilInfo.chkYear				-> specialChkData.chkYear
+		  -> specialChkBoilInfo.chkOrder				-> specialChkData.chkOrder
+		  -> specialChkBoilInfo.objYm					-> specialChkData.objYm
+		  -> specialChkBoilInfo.planYm					-> specialChkData.planYm
+		  -> specialChkBoilInfo.instFlag				-> '10'
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+		  -> specialChkBoilInfo.pdaIp					-> init-data.employeeData.equipTelNum		
+
+		 - 연소기 수정 (specialChkBoilInfo객체 항목 update)
+		  -> 연소기번호 : specialChkBoilInfo.burnerNum
+		  -> 종류 : specialChkBoilInfo.burnerKindNum에 해당하는 공통코드-burnerKind.burnerKindNm 표기 / 공통코드-burnerKind객체 필터링하여 콤보박스 (공통코드-burnerKind.burnerKindNum이 '201', '301'인 공통코드-burnerKind.burnerKindNm 표기 -> 선택된 값을 셋팅할때 공통코드-burnerKind.burnerKindNm에 해당하는 공통코드-burnerKind.burnerClassCd, 공통코드-burnerKind.burnerKindNum 값 셋팅필요)
+		  -> 제조사명 : specialChkBoilInfo.makerNum에 해당하는 공통코드-useMaker.makerNm 표기 / 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.boilerSeq로 오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
+		  -> 가스소비량 : specialChkBoilInfo.burnerCapa, 단위 : specialChkBoilInfo.burnerCapaUnit (화면코드-BOIL_CAPA 콤보박스[셋팅값:name]
+		  -> 설치일자 : specialChkBoilInfo.burnerInstYmd
+
+		  -> 수정된 값 셋팅 (specialChkBoilInfo객체 항목 수정)
+		  -> specialChkBoilInfo.burnerKindNum			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerKindNum)
+		  -> specialChkBoilInfo.burnerKindNm			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerKindNm)
+		  -> specialChkBoilInfo.burnerClassCd			-> 종류 콤보 선택값 (공통코드-burnerKind.burnerClassCd)
+		  -> specialChkBoilInfo.makerNum				-> 제조사 선택값 (공통코드-useMaker.makerNum)
+		  -> specialChkBoilInfo.makerNm					-> 제조사 선택값 (공통코드-useMaker.makerNm)
+		  -> specialChkBoilInfo.burnerModelNm			-> 모델명 입력값
+		  -> specialChkBoilInfo.burnerCapa				-> 용량 입력값
+		  -> specialChkBoilInfo.burnerCapaUnit			-> 단위 선택값 (code)
+		  -> specialChkBoilInfo.burnerInstYmd			-> 입력값
+		  -> specialChkBoilInfo.detaLoc					-> 상세위치 입력값		
+		  -> specialChkBoilInfo.chgFlag					-> '2'  
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+		  -> specialChkBoilInfo.updIp					-> init-data.employeeData.equipTelNum
+
+		 - 연소기 삭제 (specialChkBoilInfo객체 항목 update) - 신규추가한 보일러 삭제 시 항목 delete (삭제등록은 협의필요건, 미작업)
+		  -> specialChkBoilInfo.burnerRemovYmd			-> 오늘일자
+		  -> specialChkBoilInfo.chgFlag				-> '3'
+		  -> specialChkBoilInfo.instFlag				-> '30'
+		  -> specialChkBoilInfo.sendYn					-> 'S'
+		  -> specialChkBoilInfo.pdaIp					-> init-data.employeeData.equipTelNum
+		  -> specialChkBoilInfo.updEmpid				-> init-data.employeeData.employeeId
+
+		 - 보일러/연소기 신규, 수정, 삭제 건은 점검완료 시 /api/send/specialChk/specialChkRsltBurReg 호출
+
+ -> 저장 
+	- 점검제외사유가 있는 경우 값 셋팅. specialChkMtrInfo.chkExcepWhy
+	- specialChkMtrInfo.chkExcepWhy != 10 && specialChkMtrInfo.chkExcepWhy != 11인 경우
+	 -> 부적합 작업내역이 있으면 초기화, specialChkMtrInfo.chkRslt = 'E', specialChkMtrInfo.mtrRslt='Y', specialChkMtrInfo.indiVcCur='0', specialChkMtrInfo.indiVaCur='0', specialChkMtrInfo.mtrIndiVur='0', specialChkMtrInfo.visitDtm='오늘일시' 셋팅	
+	- specialChkMtrInfo.mtrRslt null인 경우 - 미점검건이므로 "계량기를 점검하세요" 메세지 출력
+	- 해당 계량기를 사용하는 연소기 건수를 체크하여 점검결과 셋팅
+	 -> specialChkBoilInfo객체 mtrNum이 specialChkMtrInfo.mtrNum과 일치하고 specialChkBoilInfo.chkFlag값이 null 또는 '3'이아닌 대상 건수체크
+	 -> 건수가 존재하면 해당 연소기들에 대한 부적합내역 체크 (specialChkNoGoodDetalInfo객체 mtrNum(specialChkMtrInfo.mtrNum), chkExecNum(specialChkMtrInfo.chkExecNum), chkSecCd='50', betterYn='N')
+	 -> specialChkMtrInfo.mtrRslt = 'Y' && 건수가 없으면 점검결과 specialChkMtrInfo.chkRslt = 'Y' 셋팅 / 있으면 'N'
+	 -> 연소기 내역이 없으면 specialChkMtrInfo.mtrRslt = 'Y'이면 specialChkMtrInfo.chkRslt = 'Y' / 아니면 'N'
+	- specialChkMtrInfo객체 최종 갱신
+	 -> specialChkMtrInfo.mtrIndiCur	-> 입력값 또는 셋팅값
+	 -> specialChkMtrInfo.indiVaCur		-> 입력값 또는 셋팅값
+	 -> specialChkMtrInfo.indiVcCur		-> 입력값 또는 셋팅값
+	 -> specialChkMtrInfo.chkExcepWhy	-> 입력값
+	 -> specialChkMtrInfo.mtrRslt		-> 셋팅값
+	 -> specialChkMtrInfo.visitDtm		-> 오늘일시 또는 셋팅값
+	 -> specialChkMtrInfo.sendYn		-> 'S'
+	 -> specialChkMtrInfo.updEmpId		-> init-data.employeeData.employeeId
+	 -> specialChkMtrInfo.pdaIp			-> init-data.employeeData.equipTelNum
+
+	- 모든계량기 점검이 완료되면 전역변수 mtrRslt값 'Y' 셋팅
+
+ - 특정정보
+  -> 특정명 : specialChkData.specialNm
+  -> 완성검사일(수정불가) : specialChkData.complInspectYmd
+  -> 월사용예정량(수정불가) : specialChkData.mmUsePlanQty
+  -> 대표자 : specialChkData.repreNm
+  -> 사무실번호 : specialChkData.repreTelDdd | specialChkData.repreTelExn | specialChkData.repreTelNum
+  -> 휴대전화번호 : specialChkData.repreCpDdd | specialChkData.repreCpExn | specialChkData.repreCpNum
+  -> 안전관리자 : specialChkData.safeManagerNm
+  -> 사무실번호 : specialChkData.manageTelDdd | specialChkData.manageTelExn | specialChkData.manageTelNum
+  -> 휴대전화번호 : specialChkData.manageCpDdd | specialChkData.manageCpExn | specialChkData.manageCpNum
+  -> 저장
+	- specialChkData.infoFlag = 'S' 
+	- specialChkData.infoYn	= 'Y' (확인/미확인 표기를 위한 값셋팅)
+	- specialChkData.upEmpId = init-data.employeeData.employeeId
+	- specialChkData.pdaIp = init-data.employeeData.equipTelNum
+	- 전역변수 infoRslt 'Y' 셋팅
+
+4. 점검결과
+ - 전역변수에 셋팅된 값에 따른 적합(20)/부적합(21) 표기 (faciRslt, mtrRslt, infoRslt) 
+ - 개선권고 목록 : specialChkNoGoodDetalInfo객체의 항목 표기ㄱ
+  -> specialChkNoGoodDetalInfo.chkSecNm, specialChkNoGoodDetalInfo.notPassItemNm, specialChkNoGoodDetalInfo.betterPlanYmd(값이 있으면 "발행", 없으면 "미발행") 
+ - 부적합 사진 : PHOTO_SPECIALCHK폴더 파일명에서 chkSecCd별 notPassItemNm으로 그룹핑하여 명칭 및 사진 노출
+ - 계약자와의 관계 : specialChkData.signRelat 값 셋팅 / 공통코드-commonCode.codeId = '40'인 codeItem, itemKname 콤보박스 표기 (선택값 codeItem)
+ - 서명 : signPhoto base64변환 셋팅 (기간계blob저장) -  specialChkData.sign
+ - 점검결과발송 : 국번 화면코드-specialChk_SMSTEL
+ - 저장 (specialChkData 객체 항목 업데이트)
+  -> specialChkData.chkTimeTo값을 현재시간으로 셋팅하여 저장버튼 누른시점에 specialChkData.chkTimeFrom값과 비교 (점검시간 : 3분(180초))
+  -> 초과되지않았으면 "점검기준시간 이전에는 점검 완료 처리가 되지 않습니다." 메세지 출력
+  -> specialChkNoGoodInfo객체에 항목이 있는지 체크 (specialChkNoGoodInfo.chkExecNum = specialChkData.chkExecNum)
+		-> 항목이 없는 경우 부적합대상(specialChkNoGoodInfo) 객체 생성 및 차수(specialChkNoGoodChaInfo) 객체 생성 / 항목이 있는 경우 UPDATE
+		-> specialChkNoGoodInfo객체 생성 
+		-> specialChkNoGoodInfo.chkExecNum			-> specialChkData.chkExecNum
+		-> specialChkNoGoodInfo.objYm				-> specialChkData.objYm
+		-> specialChkNoGoodInfo.specialNum			-> specialChkData.specialNum
+		-> specialChkNoGoodInfo.chkType				-> specialChkData.chkType
+		-> specialChkNoGoodInfo.specialNm			-> specialChkData.specialNm
+		-> specialChkNoGoodInfo.chkYear				-> specialChkData.chkYear
+		-> specialChkNoGoodInfo.chkOrder			-> specialChkData.chkOrder
+		-> specialChkNoGoodInfo.centerCd			-> specialChkData.centerCd
+		-> specialChkNoGoodInfo.zoneManageNum		-> specialChkData.zoneManageNum
+		-> specialChkNoGoodInfo.pdaNum				-> specialChkData.pdaNum
+		-> specialChkNoGoodInfo.city				-> specialChkData.city
+		-> specialChkNoGoodInfo.county				-> specialChkData.county
+		-> specialChkNoGoodInfo.town				-> specialChkData.town
+		-> specialChkNoGoodInfo.village				-> specialChkData.village
+		-> specialChkNoGoodInfo.addr1M				-> specialChkData.addr1M
+		-> specialChkNoGoodInfo.addr1S				-> specialChkData.addr1S
+		-> specialChkNoGoodInfo.secondAddr			-> specialChkData.secondAddr
+		-> specialChkNoGoodInfo.hosu				-> specialChkData.hosu
+		-> specialChkNoGoodInfo.zipNo1				-> specialChkData.zipNo1
+		-> specialChkNoGoodInfo.zipNo2				-> specialChkData.zipNo2
+		-> specialChkNoGoodInfo.newHosu				-> specialChkData.newHosu
+		-> specialChkNoGoodInfo.newAddrUngrnoudYn	-> specialChkData.newAddrUngrnoudYn
+		-> specialChkNoGoodInfo.newAddrUnion		-> specialChkData.newAddrUnion
+		-> specialChkNoGoodInfo.lawTown				-> specialChkData.lawTown
+		-> specialChkNoGoodInfo.newRoadNm			-> specialChkData.newRoadNm
+		-> specialChkNoGoodInfo.newAddrM			-> specialChkData.newAddrM
+		-> specialChkNoGoodInfo.newAddrS			-> specialChkData.newAddrS
+		-> specialChkNoGoodInfo.safeManagerNm		-> specialChkData.safeManagerNm
+		-> specialChkNoGoodInfo.manageTelDdd		-> specialChkData.manageTelDdd
+		-> specialChkNoGoodInfo.manageTelExn		-> specialChkData.manageTelExn
+		-> specialChkNoGoodInfo.manageTelNum		-> specialChkData.manageTelNum
+		-> specialChkNoGoodInfo.manageCpDdd			-> specialChkData.manageCpDdd
+		-> specialChkNoGoodInfo.manageCpExn			-> specialChkData.manageCpExn
+		-> specialChkNoGoodInfo.manageCpNum			-> specialChkData.manageCpNum
+		-> specialChkNoGoodInfo.pressFlag			-> specialChkData.pressFlag
+		-> specialChkNoGoodInfo.specialYn			-> specialChkData.specialYn
+		-> specialChkNoGoodInfo.complInspectYmd		-> specialChkData.complInspectYmd
+		-> specialChkNoGoodInfo.mmUsePlanQty		-> specialChkData.mmUsePlanQty
+		-> specialChkNoGoodInfo.insJoinYn			-> specialChkData.insJoinYn
+		-> specialChkNoGoodInfo.insJoinYmd			-> specialChkData.insJoinYmd
+		-> specialChkNoGoodInfo.sendYn				-> 'S'
+		-> specialChkNoGoodInfo.pdaIp				-> init-data.employeeData.equipTelNum
+		-> specialChkNoGoodInfo.updEmpid			-> init-data.employeeData.employeeId
+  -> specialChkNoGoodDetalInfo객체에 항목이 있는지 체크 (specialChkNoGoodDetalInfo.chkExecNum = specialChkData.chkExecNum, betterAdviceDegree='1', betterYn='N'또는null인 대상)
+		-> specialChkNoGoodChaInfo객체 생성 / 항목이 있는 경우 UPDATE
+		-> specialChkNoGoodChaInfo.betterAdviceYmd		-> 오늘날짜
+		-> specialChkNoGoodChaInfo.betterAdviceExpire	-> 오늘날짜 + 30일
+		-> specialChkNoGoodChaInfo.betterEndYmd			-> ''
+		-> specialChkNoGoodChaInfo.betterYn				-> 'N'
+		-> specialChkNoGoodChaInfo.updEmpid				-> init-data.employeeData.employeeId
+		-> specialChkNoGoodChaInfo.pdaIp				-> init-data.employeeData.equipTelNum
+		-> specialChkNoGoodChaInfo.chkExecNum			-> specialChkNoGoodDetalInfo.chkExecNum
+		-> specialChkNoGoodChaInfo.objYm				-> specialChkData.objYm
+		-> specialChkNoGoodChaInfo.specialNum			-> specialChkData.specialNum
+		-> specialChkNoGoodChaInfo.chkType				-> specialChkData.chkType
+		-> specialChkNoGoodChaInfo.sendYn				-> 'S'
+		-> specialChkNoGoodChaInfo.chkYear				-> specialChkData.chkYear
+		-> specialChkNoGoodChaInfo.chkOrder				-> specialChkData.chkOrder
+
+  -> specialChkData.chkYmd 		-> 오늘일자 셋팅
+  -> specialChkData.chkRslt 	-> specialChkNoGoodDetalInfo객체 항목 중 specialChkData.chkExecNum = specialChkNoGoodDetalInfo.chkExecNum 매칭값 있으면 '21', 없으면 '20' 셋팅
+  -> specialChkData.sendYn		-> 'S'
+  -> specialChkData.signRelat	-> 화면입력값
+  -> specialChkData.sign		-> 서명이미지
+  -> specialChkData.chkTimeFrom	-> 점검시작 시 설정된 시간값
+  -> specialChkData.chkTimeTo	-> 점검저장 시 설정된 시간값
+  -> specialChkData.chkEmpid	-> init-data.employeeData.employeeId
+  -> specialChkData.chkerNm		-> init-data.employeeData.nmKor
+  -> specialChkData.updEmpid	-> init-data.employeeData.employeeId
+  -> specialChkData.pdaIp		-> init-data.employeeData.equipTelNum
+
+  -> 각각 순서별로 api호출하여 처리
+  -> /api/send/safeChk/specialChkRsltReg (req : specialChkData)
+	-> specialChkData.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		- base64로 변환된 서명이미지를 decode하여 blob컬럼에 insert
+		- 1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_CHK_RSLT WHERE CHK_EXEC_NUM = #chk_exec_num#
+		- 2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_CHK_RSLT
+			(
+				  CHK_EXEC_NUM
+				, UPD_EMPID
+				, CRT_EMPID 
+				, UPD_IP
+				, CRT_IP
+				, CHK_EMPID   
+				, CHK_YEAR    
+				, CHK_ORDER    
+				, SPECIAL_NUM  
+				, CHK_TYPE     
+				, OBJ_YM       
+				, PLAN_YM      
+				, CHKER_NM     
+				, CHK_YMD      
+				, CHK_TIME_FROM
+				, CHK_TIME_TO  
+				, CHK_RSLT     
+				, ADV_DIST_YN  
+				, SIGN_RELAT   
+				, SIGN         
+				, BAR          
+				, BAR_WHY      
+				, MEMO         
+				, MEMO_WHY		
+				, PERIOD_CHK_YMD
+				, HEAT_PUMP_YN
+				, INST_BAR_PHOTO_ID
+				, SEND_YMD
+				, PERIOD_NOCHK_YN
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #chk_empid#
+				, #chk_empid#
+				, #client_id#
+				, #client_id#
+				, #chk_empid#
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, #plan_ym#
+				, #chker_nm#
+				, #chk_ymd#
+				, #chk_time_from#
+				, #chk_time_to#
+				, #chk_rslt#
+				, #adv_dist_yn#
+				, #sign_relat#
+				, #cust_sign#
+				, #bar#
+				, #bar_why#
+				, #memo#
+				, #memo_why#
+				, NVL(#period_chk_ymd#,'11111111')
+				, #heat_pump_yn#
+				, CASE WHEN TRIM(#temp_inst_bar_photo_id#) IS NULL THEN ( SELECT TO_NUMBER(TEMP_INST_BAR_PHOTO_ID) FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				       ELSE TO_NUMBER(#temp_inst_bar_photo_id#)
+				   END
+				, TO_CHAR(SYSDATE, 'YYYYMMDD')
+				, (
+					SELECT CASE WHEN COUNT(1) - SUM(CASE WHEN MTR.MTR_SUPPLY_STS != '10' THEN 1 ELSE 0 END) = 0 THEN 'Y' ELSE 'N' END   AS PERIOD_NOCHK_YN
+					FROM   C31.C3AT_MTR              MTR
+					     , C31.C3CT_SPECIAL_USE_FACI SUF
+					WHERE   MTR.MTR_NUM = SUF.SPECIAL_FACI_NUM
+					AND     SUF.SPECIAL_FACI_FLAG = '30'
+					AND     SUF.SPECIAL_NUM = #special_num#
+				)
+			)
+		- 3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_CHK_RSLT 
+			   SET UPD_EMPID      = #chk_empid#
+				 , UPD_IP         = #client_id#
+				 , CHK_EMPID      = #chk_empid#
+				 , CHK_YEAR       = #chk_year#
+				 , CHK_ORDER      = #chk_order#
+				 , SPECIAL_NUM    = #special_num#
+				 , CHK_TYPE       = #chk_type#
+				 , OBJ_YM         = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM        = #plan_ym#
+				 , CHKER_NM       = #chker_nm#
+				 , CHK_YMD        = #chk_ymd#
+				 , CHK_TIME_FROM  = #chk_time_from#
+				 , CHK_TIME_TO    = #chk_time_to#
+				 , CHK_RSLT       = #chk_rslt#
+				 , ADV_DIST_YN    = #adv_dist_yn#
+				 , SIGN_RELAT     = #sign_relat#
+				 , SIGN           = #cust_sign#
+				 , BAR            = #bar#
+				 , BAR_WHY        = #bar_why#
+				 , MEMO           = #memo#
+				 , MEMO_WHY       = #memo_why#
+				 , RSLT_REFLE_YN  = 'N'
+				 , PERIOD_CHK_YMD = #period_chk_ymd#
+				 , HEAT_PUMP_YN	  = #heat_pump_yn#
+				 , UPD_DTM		  = SYSDATE
+				 , INST_BAR_PHOTO_ID = CASE WHEN TRIM(#temp_inst_bar_photo_id#) IS NULL THEN ( SELECT TO_NUMBER(TEMP_INST_BAR_PHOTO_ID) FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+											     ELSE TO_NUMBER(#temp_inst_bar_photo_id#)
+											 END
+                 , SEND_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                 , PERIOD_NOCHK_YN =  (
+						SELECT CASE WHEN COUNT(1) - SUM(CASE WHEN MTR.MTR_SUPPLY_STS != '10' THEN 1 ELSE 0 END) = 0 THEN 'Y' ELSE 'N' END   AS PERIOD_NOCHK_YN
+						FROM   C31.C3AT_MTR              MTR
+						     , C31.C3CT_SPECIAL_USE_FACI SUF
+						WHERE   MTR.MTR_NUM = SUF.SPECIAL_FACI_NUM
+						AND     SUF.SPECIAL_FACI_FLAG = '30'
+						AND     SUF.SPECIAL_NUM = #special_num#
+						)
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+		- 4) 점검대상 상태값 변경
+			UPDATE C31.C3CT_SPECIAL_OBJ_PDA 
+			   SET UPD_EMPID = #chk_empid#
+			     , UPD_IP    = #client_id#
+			     , SEND_YN   = 'Y'
+			     , UPD_DTM   = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+  -> /api/send/safeChk/specialChkRsltMtrReg (req : specialChkMtrInfo)
+	-> specialChkMtrInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		- 1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_INDI WHERE CHK_EXEC_NUM = #chk_exec_num# AND MTR_NUM = #mtr_num#
+		- 2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_INDI
+			(
+				  MTR_NUM        
+				, CHK_EXEC_NUM       
+				, UPD_EMPID               
+				, CRT_EMPID        
+				, UPD_IP          
+				, CRT_IP            
+				, VISIT_DTM       
+				, MTR_INDI        
+				, INDI_VA         
+				, INDI_VC         
+				, COMPENS_YN      
+				, CHK_EXCEP_WHY   
+				, CHK_YEAR        
+				, CHK_ORDER       
+				, SPECIAL_NUM     
+				, CHK_TYPE        
+				, OBJ_YM          
+				, PLAN_YM
+				, FACI_STS_CD
+				, MTR_DETA_LOC
+				, BUILT_IN_YN
+			)
+			VALUES
+			(
+				  #mtr_num# 
+				, #chk_exec_num#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				, #mtr_indi_cur#
+				, #indi_va_cur#
+				, #indi_vc_cur#
+				, #compens_yn#
+				, #chk_excep_why#
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, #plan_ym#
+				, #faci_sts_cd#
+				, #mtr_deta_loc#
+				, NVL(#built_in_yn#,'N')
+			)
+		- 3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_INDI 
+			   SET UPD_EMPID     = #user_id#
+				 , UPD_IP        = #client_id#
+				 , VISIT_DTM     = TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				 , MTR_INDI      = #mtr_indi_cur#
+				 , INDI_VA       = #indi_va_cur#
+				 , INDI_VC       = #indi_vc_cur#
+				 , COMPENS_YN    = #compens_yn#
+				 , CHK_EXCEP_WHY = #chk_excep_why#
+				 , CHK_YEAR      = #chk_year#
+				 , CHK_ORDER     = #chk_order#
+				 , SPECIAL_NUM   = #special_num#
+				 , CHK_TYPE      = #chk_type#
+				 , OBJ_YM        = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM	     = #plan_ym#
+				 , RSLT_REFLE_YN = 'N'
+				 , UPD_DTM       = SYSDATE
+				 , FACI_STS_CD   = #faci_sts_cd#
+				 , MTR_DETA_LOC  = #mtr_deta_loc#
+				 , BUILT_IN_YN	 = NVL(#built_in_yn#,'N')
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+	           AND MTR_NUM = #mtr_num#
+  -> /api/send/safeChk/specialChkRsltGovDisjointReg (req : specialChkGovRegInfo)
+	-> specialChkGovRegInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		- 1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_GOV_DISJOINT_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# AND GOV_REGTR_FLAG=#gov_regtr_flag# AND GOV_REGTR_NUM=#gov_regtr_num#
+		- 2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_GOV_DISJOINT_PDA
+			(
+				  CHK_EXEC_NUM
+				, GOV_REGTR_FLAG
+				, GOV_REGTR_NUM
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, MAKER_NUM
+				, MODEL_CD
+				, DISJOINT_CHK_YMD
+				, DISJOINT_CHK_FIRM_CD
+				, CHK_YEAR
+				, CHK_ORDER
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, OBJ_YM
+				, PLAN_YM
+				, INST_YMD
+				, DETA_LOC
+				, FILTER_CLEAN_YMD 
+				, FILTER_CLEAN_FIRM_CD 
+				, REGTR_LOC_FLAG 
+				, REGTR_STD 
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #gov_regtr_flag#
+				, #gov_regtr_num#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, #maker_num#
+				, #model_cd#
+				, NVL(#disjoint_chk_ymd#,' ')
+				, NVL(#disjoint_chk_firm_cd#,' ')
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, #plan_ym#
+				, #inst_ymd#
+				, #deta_loc#
+				, NVL(#filter_clean_ymd#,' ')
+				, NVL(#filter_clean_firm_cd#,' ')
+				, NVL(#regtr_loc_flag#,' ')
+				, NVL(#regtr_std#,' ')
+			)
+		- 3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_GOV_DISJOINT_PDA
+			   SET UPD_EMPID            = #user_id#
+				 , UPD_IP               = #client_id#
+				 , MAKER_NUM            = #maker_num#
+				 , MODEL_CD             = #model_cd#
+				 , DISJOINT_CHK_YMD     = NVL(#disjoint_chk_ymd#,' ')
+				 , DISJOINT_CHK_FIRM_CD = NVL(#disjoint_chk_firm_cd#,' ')
+				 , CHK_YEAR             = #chk_year#
+				 , CHK_ORDER            = #chk_order#
+				 , SPECIAL_NUM          = #special_num#
+				 , CHK_TYPE             = #chk_type#
+				 , OBJ_YM               = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM	            = #plan_ym#
+				 , RSLT_REFLE_YN 		= 'N'
+				 , UPD_DTM 				= SYSDATE
+				 , INST_YMD             = #inst_ymd#
+				 , DETA_LOC             = #deta_loc#
+				 , FILTER_CLEAN_YMD     = NVL(#filter_clean_ymd#,' ')
+				 , FILTER_CLEAN_FIRM_CD = NVL(#filter_clean_firm_cd#,' ')
+				 , REGTR_LOC_FLAG       = NVL(#regtr_loc_flag#,' ')
+				 , REGTR_STD 		    = NVL(#regtr_std#,' ')
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND GOV_REGTR_FLAG = #gov_regtr_flag#
+			   AND GOV_REGTR_NUM = #gov_regtr_num#
+  -> /api/send/safeChk/specialChkRsltInfoReg (req : specialChkData)
+	-> specialChkData.infoFlag = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		- 1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_INFO_CHG WHERE CHK_EXEC_NUM = #chk_exec_num#
+		- 2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_INFO_CHG
+			(
+				  CHK_EXEC_NUM
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, REPRE_TEL_DDD
+				, REPRE_TEL_EXN
+				, REPRE_TEL_NUM
+				, REPRE_CP_DDD
+				, REPRE_CP_EXN
+				, REPRE_CP_NUM
+				, SAFE_MANAGER_NM
+				, MANAGE_TEL_DDD
+				, MANAGE_TEL_EXN
+				, MANAGE_TEL_NUM
+				, MANAGE_CP_DDD
+				, MANAGE_CP_EXN
+				, MANAGE_CP_NUM
+				, REPRE_NM
+				, CHK_YEAR
+				, CHK_ORDER
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, OBJ_YM
+				, PLAN_YM
+				, SPECIAL_NM
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TRIM(#repre_tel_ddd#)
+				, TRIM(#repre_tel_exn#)
+				, TRIM(#repre_tel_num#)
+				, TRIM(#repre_cp_ddd#)
+				, TRIM(#repre_cp_exn#)
+				, TRIM(#repre_cp_num#)
+				, #safe_manager_nm#
+				, TRIM(#manage_tel_ddd#)
+				, TRIM(#manage_tel_exn#)
+				, TRIM(#manage_tel_num#)
+				, TRIM(#manage_cp_ddd#)
+				, TRIM(#manage_cp_exn#)
+				, TRIM(#manage_cp_num#)
+				, #repre_nm#
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, #plan_ym#
+				, #special_nm#
+			)
+		- 3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_INFO_CHG 
+			   SET UPD_EMPID       = #user_id#
+				 , UPD_IP          = #client_id#
+				 , REPRE_TEL_DDD   = #repre_tel_ddd#
+				 , REPRE_TEL_EXN   = #repre_tel_exn#
+				 , REPRE_TEL_NUM   = #repre_tel_num#
+				 , REPRE_CP_DDD    = #repre_cp_ddd#
+				 , REPRE_CP_EXN    = #repre_cp_exn#
+				 , REPRE_CP_NUM    = #repre_cp_num#
+				 , SAFE_MANAGER_NM = #safe_manager_nm#
+				 , MANAGE_TEL_DDD  = #manage_tel_ddd#
+				 , MANAGE_TEL_EXN  = #manage_tel_exn#
+				 , MANAGE_TEL_NUM  = #manage_tel_num#
+				 , MANAGE_CP_DDD   = #manage_cp_ddd#
+				 , MANAGE_CP_EXN   = #manage_cp_exn#
+				 , MANAGE_CP_NUM   = #manage_cp_num#
+				 , REPRE_NM        = #repre_nm#
+				 , CHK_YEAR        = #chk_year#
+				 , CHK_ORDER       = #chk_order#
+				 , SPECIAL_NUM     = #special_num#
+				 , CHK_TYPE        = #chk_type#
+				 , OBJ_YM          = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM	       = #plan_ym#
+				 , RSLT_REFLE_YN   = 'N'
+				 , SPECIAL_NM      = #special_nm#
+				 , UPD_DTM         = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+  -> /api/send/safeChk/specialChkRsltBurReg (req : specialChkBoilInfo)
+	-> specialChkBoilInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		- 1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_BURNER_CHG WHERE CHK_EXEC_NUM = #chk_exec_num# AND MTR_NUM = #mtr_num# AND BURNER_NUM = #burner_num#
+		- 2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_BURNER_CHG
+			(
+				  CHK_EXEC_NUM
+				, MTR_NUM
+				, BURNER_NUM
+				, UPD_EMPID
+				, UPD_IP
+				, CRT_EMPID
+				, CRT_IP
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, CHK_YEAR
+				, CHK_ORDER
+				, OBJ_YM
+				, PLAN_YM
+				, CHG_FLAG
+				, BURNER_CLASS_CD
+				, BURNER_KIND_NUM
+				, BURNER_MODEL_NM
+				, BURNER_CAPA
+				, BURNER_CAPA_UNIT
+				, BURNER_INST_YMD
+				, BURNER_REMOV_YMD
+				, MAKER_NUM
+				, MAKER_NM
+				, BOILER_FORM
+				, MAKE_NUM
+				, MAKE_YMD
+				, INST_LOC
+				, BOILER_INST_FIRM_CD
+				, DETA_LOC
+			) 
+			VALUES
+			(
+				  #chk_exec_num#
+				, #mtr_num#
+				, #burner_num#
+				, NVL(#user_id#,' ')
+				, NVL(#client_id#,' ')
+				, NVL(#user_id#,' ')
+				, NVL(#client_id#,' ')
+				, #special_num#
+				, #chk_type#
+				, #chk_year#
+				, #chk_order#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, #plan_ym#
+				, #chg_flag#
+				, ( SELECT MAX(BURNER_CLASS_CD) FROM C31.C3AT_BURNER_KIND WHERE BURNER_KIND_NUM = #burner_kind_num# )
+				, #burner_kind_num#
+				, #burner_model_nm#
+				, #burner_capa#
+				, #burner_capa_unit#
+				, NVL(#burner_inst_ymd#,'        ')
+				, NVL(#burner_remov_ymd#,'        ')
+				, NVL(#maker_num#,'     ')
+				, #maker_nm#
+				, #boiler_form#
+				, NVL(#make_num#,'')
+				, NVL(#make_ymd#,'        ')
+				, #inst_loc#
+				, #boiler_inst_firm_cd#
+				, #deta_loc#
+			)
+		- 3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_BURNER_CHG
+			   SET UPD_EMPID  		   = NVL(#user_id#,' ')
+				 , UPD_IP     		   = NVL(#client_id#,' ')
+				 , UPD_DTM   		   = SYSDATE
+				 , CHK_TYPE  		   = #chk_type#
+				 , CHK_YEAR   		   = #chk_year#
+				 , CHK_ORDER   		   = #chk_order#
+				 , OBJ_YM    		   = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM    		   = #plan_ym#
+				 , CHG_FLAG            = #chg_flag#
+				 , BURNER_CLASS_CD     = ( SELECT MAX(BURNER_CLASS_CD) FROM C31.C3AT_BURNER_KIND WHERE BURNER_KIND_NUM = #burner_kind_num# )
+				 , BURNER_KIND_NUM     = #burner_kind_num#
+				 , BURNER_MODEL_NM     = #burner_model_nm#
+				 , BURNER_CAPA         = #burner_capa#
+				 , BURNER_CAPA_UNIT    = #burner_capa_unit#
+				 , BURNER_INST_YMD     = NVL(#burner_inst_ymd#,'        ')
+				 , BURNER_REMOV_YMD    = NVL(#burner_remov_ymd#,'        ')
+				 , MAKER_NUM           = NVL(#maker_num#,'     ')
+				 , MAKER_NM            = #maker_nm#
+				 , BOILER_FORM         = #boiler_form#
+				 , MAKE_NUM            = NVL(#make_num#,'')
+				 , MAKE_YMD            = NVL(#make_ymd#,'        ')
+				 , INST_LOC            = #inst_loc#
+				 , BOILER_INST_FIRM_CD = #boiler_inst_firm_cd#
+				 , DETA_LOC            = #deta_loc#
+				 , RSLT_REFLE_YN       = 'N'             
+			 WHERE CHK_EXEC_NUM  =#chk_exec_num# 
+			   AND MTR_NUM = #mtr_num#   
+			   AND BURNER_NUM = #burner_num#
+  -> /api/send/safeChk/specialChkRsltNoGoodReg (req : specialChkNoGoodInfo)
+	-> specialChkNoGoodInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM  FROM C31.C3CT_SPECIAL_NOT_PASS_OBJ  WHERE CHK_EXEC_NUM = #chk_exec_num#
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_NOT_PASS_OBJ
+			(	
+				  CHK_EXEC_NUM
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, SPECIAL_NM
+				, CHK_YEAR
+				, CHK_ORDER
+				, CENTER_CD
+				, TOWN
+				, CITY
+				, COUNTY
+				, VILLAGE
+				, ADDR1_M
+				, ADDR1_S
+				, SECOND_ADDR
+				, BLD_DONG
+				, HOSU
+				, CURR_ADDR_UNION
+				, ZIP_NO1
+				, ZIP_NO2
+				, NEW_HOSU
+				, NEW_ADDR_UNGRNOUD_YN
+				, NEW_ADDR_UNION
+				, LAW_TOWN
+				, NEW_ROAD_NM
+				, NEW_ADDR_M
+				, NEW_ADDR_S
+				, SAFE_MANAGER_NM
+				, MANAGE_TEL_DDD
+				, MANAGE_TEL_EXN
+				, MANAGE_TEL_NUM
+				, MANAGE_CP_DDD
+				, MANAGE_CP_EXN
+				, MANAGE_CP_NUM
+				, PRESS_FLAG
+				, SPECIAL_YN
+				, COMPL_INSPECT_YMD
+				, MM_USE_PLAN_QTY
+				, INS_JOIN_YN
+				, CHK_EMPID
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				, #special_num#
+				, #chk_type#
+				, #special_nm#
+				, #chk_year#
+				, #chk_order#
+				, #center_cd#
+				, #town#
+				, #city#
+				, #county#
+				, #village#
+				, #addr1_m#
+				, #addr1_s#
+				, #second_addr#
+				, #bld_dong#
+				, #hosu#
+				, #curr_addr_union#
+				, #zip_no1#
+				, #zip_no2#
+				, #new_hosu#
+				, #new_addr_ungrnoud_yn#
+				, #new_addr_union#
+				, #law_town#
+				, #new_road_nm#
+				, #new_addr_m#
+				, #new_addr_s#
+				, #safe_manager_nm#
+				, #manage_tel_ddd#
+				, #manage_tel_exn#
+				, #manage_tel_num#
+				, #manage_cp_ddd#
+				, #manage_cp_exn#
+				, #manage_cp_num#
+				, #press_flag#
+				, #special_yn#
+				, #compl_inspect_ymd#
+				, #mm_use_plan_qty#
+				, #ins_join_yn#
+				, #user_id#
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS_OBJ 
+			   SET UPD_EMPID 			= #user_id#
+				 , UPD_IP      			= #client_id#
+				 , OBJ_YM		  		= TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM 				= ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , SPECIAL_NUM			= #special_num#
+				 , CHK_TYPE	 			= #chk_type#
+				 , SPECIAL_NM			= #special_nm#
+				 , CHK_YEAR	 			= #chk_year#
+				 , CHK_ORDER	 		= #chk_order#
+				 , CENTER_CD	 		= #center_cd#
+				 , CITY		 			= #city#
+				 , COUNTY		 		= #county#
+				 , TOWN		 			= #town#
+				 , VILLAGE		 		= #village#
+				 , ADDR1_M		 		= #addr1_m#
+				 , ADDR1_S		 		= #addr1_s#
+				 , SECOND_ADDR			= #second_addr#
+				 , BLD_DONG   			= #bld_dong#
+				 , HOSU       			= #hosu#      
+				 , CURR_ADDR_UNION 		= #curr_addr_union#
+				 , ZIP_NO1        		= #zip_no1#
+				 , ZIP_NO2         		= #zip_no2#
+				 , NEW_HOSU        		= #new_hosu#
+				 , NEW_ADDR_UNGRNOUD_YN = #new_addr_ungrnoud_yn#
+				 , NEW_ADDR_UNION       = #new_addr_union#
+				 , LAW_TOWN			    = #law_town#
+				 , NEW_ROAD_NM			= #new_road_nm#
+				 , NEW_ADDR_M			= #new_addr_m#
+				 , NEW_ADDR_S			= #new_addr_s#
+				 , SAFE_MANAGER_NM   	= #safe_manager_nm#
+				 , MANAGE_TEL_DDD    	= #manage_tel_ddd#
+				 , MANAGE_TEL_EXN    	= #manage_tel_exn#
+				 , MANAGE_TEL_NUM    	= #manage_tel_num#
+				 , MANAGE_CP_DDD     	= #manage_cp_ddd#
+				 , MANAGE_CP_EXN     	= #manage_cp_exn#
+				 , MANAGE_CP_NUM     	= #manage_cp_num#
+				 , PRESS_FLAG        	= #press_flag#
+				 , SPECIAL_YN        	= #special_yn#
+				 , COMPL_INSPECT_YMD 	= #compl_inspect_ymd#
+				 , MM_USE_PLAN_QTY   	= #mm_use_plan_qty#
+				 , INS_JOIN_YN       	= #ins_join_yn#
+				 , CHK_EMPID         	= #user_id#
+				 , UPD_DTM				= SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+  -> /api/send/safeChk/specialChkRsltNoGoodChaReg (req : specialChkNoGoodChaInfo)
+	-> specialChkNoGoodChaInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_BETTER_ADVICE WHERE CHK_EXEC_NUM = #chk_exec_num# AND BETTER_ADVICE_DEGREE = LPAD( #better_advice_degree#, 3, '0' )
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_BETTER_ADVICE
+			(
+				  CHK_EXEC_NUM
+				, BETTER_ADVICE_DEGREE
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, BETTER_ADVICE_YMD
+				, BETTER_ADVICE_EXPIRE
+				, BETTER_YN
+				, BETTER_END_YMD
+				, SUPPLY_STOP_YMD
+				, NOT_PERMIT_WHY
+				, CHK_YEAR
+				, CHK_ORDER
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, LPAD( #better_advice_degree#, 3, '0' )
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				, #special_num#
+				, #chk_type#
+				, #better_advice_ymd#
+				, #better_advice_expire#
+				, #better_yn#
+				, #better_end_ymd#
+				, #supply_stop_ymd#
+				, #not_permit_why#
+				, #chk_year#
+				, #chk_order#
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_BETTER_ADVICE 
+			   SET OBJ_YM               = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM              = ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , SPECIAL_NUM          = #special_num#
+				 , CHK_TYPE             = #chk_type#
+				 , BETTER_ADVICE_YMD    = #better_advice_ymd#
+				 , BETTER_ADVICE_EXPIRE = #better_advice_expire#
+				 , BETTER_YN            = #better_yn#
+				 , BETTER_END_YMD       = #better_end_ymd#
+				 , SUPPLY_STOP_YMD      = #supply_stop_ymd#
+				 , NOT_PERMIT_WHY       = #not_permit_why#
+				 , CHK_YEAR             = #chk_year#
+				 , CHK_ORDER            = #chk_order#
+				 , RSLT_REFLE_YN        = 'N'
+				 , UPD_DTM              = SYSDATE                                                             
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND BETTER_ADVICE_DEGREE = LPAD( #better_advice_degree#, 3, '0' )
+  -> /api/send/safeChk/specialChkRsltNoGoodDetalReg (req : specialChkNoGoodDetalInfo)
+	-> specialChkNoGoodDetalInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_NOT_PASS WHERE CHK_EXEC_NUM = #chk_exec_num# AND CHK_SEC_CD = #chk_sec_cd# AND MTR_NUM = #mtr_num# AND BURNER_NUM = #burner_num# AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_NOT_PASS
+			(
+				  CHK_EXEC_NUM
+				, CHK_SEC_CD
+				, MTR_NUM
+				, BURNER_NUM
+				, NOT_PASS_ITEM_CD
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, CHK_YEAR
+				, CHK_ORDER
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, CHK_SEC_NM
+				, NOT_PASS_ITEM_NM
+				, VISIT_DTM
+				, BETTER_PLAN_YMD
+				, BETTER_YN
+				, BETTER_END_YMD
+				, BETTER_CONF_EMPID
+				, BETTER_CONF_NM
+				, BETTER_DEGREE
+				, PHOTO_ID
+				, BETTER_PHOTO_ID
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #chk_sec_cd#
+				, #mtr_num#
+				, #burner_num#
+				, #not_pass_item_cd#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, (SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num#)
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, #chk_sec_nm#
+				, #not_pass_item_nm#
+				, TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				, #better_plan_ymd#
+				, #better_yn#
+				, #better_end_ymd#
+				, #better_conf_empid#
+				, #better_conf_nm#
+				, LPAD( #better_degree#, 3, '0' )
+				, 0
+				, 0
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS 
+			   SET OBJ_YM            = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM 			 = ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , CHK_YEAR          = #chk_year#
+				 , CHK_ORDER         = #chk_order#
+				 , SPECIAL_NUM       = #special_num#
+				 , CHK_TYPE          = #chk_type#
+				 , CHK_SEC_NM        = #chk_sec_nm#
+				 , NOT_PASS_ITEM_NM  = #not_pass_item_nm#
+				 , VISIT_DTM         = TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				 , BETTER_PLAN_YMD   = #better_plan_ymd#
+				 , BETTER_YN         = #better_yn#
+				 , BETTER_END_YMD    = #better_end_ymd#
+				 , BETTER_CONF_EMPID = #better_conf_empid#
+				 , BETTER_CONF_NM    = #better_conf_nm#
+				 , BETTER_DEGREE     = LPAD( #better_degree#, 3, '0' )
+				 , RSLT_REFLE_YN	 = 'N'
+				 , UPD_DTM			 = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#		
+  -> /api/send/safeChk/specialChkRsltBuryPipeReg (req : specialChkBuryHideChkRsltInfo)
+	-> specialChkBuryHideChkRsltInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM FROM C31.C3CT_BURY_HIDE_PIPE_CHK_RSLT WHERE CHK_EXEC_NUM = #chk_exec_num# AND MTR_NUM = #mtr_num# AND PIPE_BURY_HIDE_FLAG = #pipe_bury_hide_flag#
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_BURY_HIDE_PIPE_CHK_RSLT A
+			( 
+				  CHK_EXEC_NUM
+				, CHK_TYPE
+			    , MTR_NUM
+			    , PIPE_BURY_HIDE_FLAG
+			    , UPD_EMPID
+			    , UPD_IP
+			    , CRT_EMPID
+			    , CRT_IP
+			    , GAS_DAMP_YN
+			    , MULTI_GAS_MTR_YN
+			    , PIPE_INSPEC_HOLE_YN
+			    , CUTOFF_INSPEC_HOLE_YN
+			    , PIPE_LOC_MARK_YN  
+			 )         
+			 VALUES             
+			( 
+				  #chk_exec_num#
+				, #chk_type#
+			    , #mtr_num#
+			    , #pipe_bury_hide_flag#
+			    , #user_id#
+			    , #client_id#
+			    , #user_id#
+			    , #client_id#
+			    , #gas_damp_yn#
+			    , #multi_gas_mtr_yn#
+			    , #pipe_inspec_hole_yn#
+			    , #cutoff_inspec_hole_yn#
+			    , #pipe_loc_mark_yn#
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_BURY_HIDE_PIPE_CHK_RSLT  
+			   SET CHK_TYPE              = #chk_type#
+			     , UPD_EMPID             = #user_id#
+				 , UPD_IP                = #client_id#
+				 , GAS_DAMP_YN           = #gas_damp_yn#
+				 , MULTI_GAS_MTR_YN      = #multi_gas_mtr_yn#
+				 , PIPE_INSPEC_HOLE_YN   = #pipe_inspec_hole_yn#
+				 , CUTOFF_INSPEC_HOLE_YN = #cutoff_inspec_hole_yn#
+				 , PIPE_LOC_MARK_YN      = #pipe_loc_mark_yn#
+				 , UPD_DTM               = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND MTR_NUM = #mtr_num#
+			   AND PIPE_BURY_HIDE_FLAG = #pipe_bury_hide_flag#
+
+  -> 점검결과 데이터 전송이 완료되면 점검에 촬영된 사진 업로드 api호출하여 처리
+  -> 부적합, 계량기 사진 업로드 api
+
+  -> /api/send/specialChk/specialChkRsltNoGoodPhotoReg (req : specialChkNoGoodPhotoInfo)
+	-> 사진폴더 - PHOTO_SPECIALCHK
+	-> 부적합사진은 전송할 specialChkNoGoodInfo객체 항목추가해서 request
+	-> 부적합 사진은 부적합사진, 개선완료사진이있는데 이는 사진파일명의 맨앞자리 숫자로 구분 (1:부적합, 2:개선)
+		-> 언더하이픈을 구분자로하여 자릿수별 추출된 항목 변수 셋팅
+		-> ex)1번째_2번째_3번째_4번째_5번째_6번째
+		-> gubun
+		-> chkExecNum
+		-> mtrNum
+		-> burnerNum
+		-> chkSecCd
+		-> notPassItemCd
+		-> photo -> 사진 base64
+		-> updEmpId -> init-data.employeeData.employeeId
+		-> updIp	-> init-data.employeeData.equipTelNum
+		-> specialChkNoGoodPhotoInfo 신규객체 생성하여 위 항목 셋팅 (총 9개 항목)
+	-> backend 참고부분
+		b64sign = req.getPhoto();
+		byte[] bsign = Base64.decodeBase64( b64sign );
+		map.put("photo_b", bsign);
+		
+		file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+		/*
+		SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+		*/
+		if(file_Seqs == null)
+		{
+			rep.setCode("FR412310");
+			rep.setMessage("파일ID 생성 실패 했습니다.");
+			return rep;
+		}
+		
+		szfileid = file_Seqs.get(0).getSeq();
+		map.put( "file_id", szfileid );
+		map.put( "file_code", "C32" );
+		
+		/exdat03/C30/C32
+		szpath += File.separator+yyyy+File.separator+mm;
+		File path = new File(szpath);
+		if (!path.exists())
+		{
+			path.mkdirs();
+		}
+		
+		map.put( "file_path", szpath );
+		if( req.getGubun().equals("1")  )
+			szfilenm = "C34E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"N"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+		else
+			szfilenm = "C34E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"B"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+		
+		map.put( "file_name", szfilenm );
+		
+		f = new CFile( szpath + "/" + szfilenm );
+		f.OpenReadWrite();
+		f.Write(bsign, bsign.length );
+		f.Close();
+		file_size = bsign.length;
+		szfilesize = String.valueOf(file_size);
+		 
+		map.put( "file_size", szfilesize );
+		
+		retchk = adaptor.insert("call_FR312317_File_Insert", map);
+		/*
+			INSERT INTO C31.C3AT_FILE_INFO_PDA
+			(
+				  FILE_ID
+				, FILE_NAME
+				, ORG_FILE_NAME
+				, FILE_CODE
+				, FILE_PATH
+				, FILE_SIZE
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, PHOTO_SEND_YMD
+			)
+			VALUES
+			(
+			      #file_id#
+				, #file_name#
+				, #file_name#
+				, #file_code#
+				, #file_path#
+				, #file_size#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, TO_CHAR(SYSDATE,'yyyymmdd')
+			)
+		*/
+		if (ret < 0)
+		{
+			rep.setCode( "FR412310" );
+			rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+			return rep;
+		}
+		
+		if( req.getGubun().equals("1")  )
+		{
+			ret = smct.update("call_FR412310_photo", map);
+			/*
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS 
+			   SET PHOTO_ID  = #file_id#
+			     , UPD_DTM   = SYSDATE
+			     , UPD_EMPID = #userid#
+				 , UPD_IP    = #clientid#
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+			*/
+			//레코드가 한개도 반영되지 않은 경우.
+			if (ret < 0)
+			{
+				rep.setCode( "FR412310" );
+				rep.setMessage("부적합 상세 등록에 실패했습니다.");
+				return rep;
+			}
+		}
+		else
+		{
+			ret = smct.update("call_FR412310_Bphoto", map);
+			/*
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS
+			   SET BETTER_PHOTO_ID = #file_id#
+			     , UPD_DTM         = SYSDATE
+			     , UPD_EMPID = #userid#
+				 , UPD_IP    = #clientid#
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#	
+			*/
+			//레코드가 한개도 반영되지 않은 경우.
+			if (ret < 0)
+			{
+				rep.setCode( "FR412310" );
+				rep.setMessage( "개선완료 사진 등록에 실패했습니다." );
+				return rep;
+			}
+		}
+  -> /api/send/safeChk/specialChkMtrDetailPhotoReg (req : specialChkDetailPhotoInfo)
+	-> 사진폴더 - PHOTO_SPECIALCHK_DETAIL
+		-> 언더하이픈을 구분자로하여 자릿수별 추출된 항목 변수 셋팅
+		-> ex)1번째_2번째_3번째_4번째_5번째_6번째
+		-> chkExecNum
+		-> mtrNum
+		-> instPlaceNum
+		-> photo -> 사진 base64
+		-> updEmpId -> init-data.employeeData.employeeId
+		-> updIp	-> init-data.employeeData.equipTelNum
+		-> specialChkDetailPhotoInfo 신규객체 생성 및 항목셋팅
+	-> backend 참고부분		
+		map = adaptor.BeanToMap(req, map);
+
+		b64sign = req.getPhoto();
+		byte[] bsign = Base64.decodeBase64( b64sign );
+		map.put("photo", bsign );
+		
+		file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+		/*
+		SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+		*/
+		
+		if(file_Seqs == null)
+		{
+			rep.setCode("FR312325");
+			rep.setMessage("파일ID 생성 실패 했습니다.");
+			return rep;
+		}
+		
+		szfileid = file_Seqs.get(0).getSeq();
+		
+		map.put( "file_id", szfileid );
+		map.put( "file_code", "C36");
+		
+		//szpath = "/exdat03/C30/C36"
+		szpath += req.getFlag().toString() + File.separator + yyyy + File.separator + mm + File.separator + dd;
+		File path = new File(szpath);
+		if (!path.exists())
+		{
+			path.mkdirs();
+		}
+		
+		map.put( "file_path", szpath );
+		
+		szfilenm = "C36" + "E" + req.getChk_exec_num() + "M" + req.getMtr_num() + "I" + req.getInst_place_num() + "D" + day + time + ".jpg";
+		
+		map.put( "file_name", szfilenm );
+		
+		f = new CFile( szpath + "/" + szfilenm );
+		f.OpenReadWrite();
+		f.Write(bsign, bsign.length );
+		f.Close();
+		file_size = bsign.length;
+		szfilesize = String.valueOf(file_size);
+		 
+		map.put( "file_size", szfilesize );
+		map.put( "chk_exec_num", req.getChk_exec_num() );
+		map.put( "mtr_num", req.getMtr_num() );
+		map.put( "user_id", req.getUserid() );
+		map.put( "client_id", req.getClientid() );
+		
+		//파일 insert
+		retchk = adaptor.insert("call_FR312317_File_Insert", map);
+		/*
+		INSERT INTO C31.C3AT_FILE_INFO_PDA
+		(
+			  FILE_ID
+			, FILE_NAME
+			, ORG_FILE_NAME
+			, FILE_CODE
+			, FILE_PATH
+			, FILE_SIZE
+			, CRT_DTM
+			, CRT_EMPID
+			, CRT_IP
+			, UPD_DTM
+			, UPD_EMPID
+			, UPD_IP
+			, PHOTO_SEND_YMD
+		)
+		VALUES
+		(
+			  #file_id#
+			, #file_name#
+			, #file_name#
+			, #file_code#
+			, #file_path#
+			, #file_size#
+			, SYSDATE
+			, #userid#
+			, #clientid#
+			, SYSDATE
+			, #userid#
+			, #clientid#
+			, TO_CHAR(SYSDATE,'yyyymmdd')
+		)
+		*/
+		
+		//C31.C3CT_PHOTO_MANAGE INSERT
+		retchk = adaptor.insert("call_FR312324_Insert", map);
+		/*
+		INSERT INTO C31.C3CT_PHOTO_MANAGE
+		(
+			  CHK_EXEC_NUM
+			, INFLOW_FLAG
+			, FLAG_ITEM
+			, SEQ
+			, UPD_DTM
+			, UPD_EMPID
+			, UPD_IP
+			, CRT_DTM
+			, CRT_EMPID
+			, CRT_IP
+			, CHK_YEAR
+			, CHK_ORDER
+			, CHK_TYPE
+			, MTR_NUM
+			, BURNER_NUM
+			, INST_PLACE_NUM
+			, BLD_NUM
+			, SPECIAL_NUM
+			, SPECIAL_FACI_FLAG
+			, SPECIAL_FACI_NUM
+			, FILE_ID 
+		)
+		VALUES
+		(
+			  #chk_exec_num#
+			, #inflow_flag#
+			, #flag_item#			
+			, ( SELECT NVL(MAX(SEQ), 0) + 1 
+				  FROM C31.C3CT_PHOTO_MANAGE
+				 WHERE CHK_EXEC_NUM = #chk_exec_num#
+				   AND INFLOW_FLAG = #inflow_flag#
+				   AND FLAG_ITEM = #flag_item# )
+			, SYSDATE
+			, #user_id#
+			, #client_id#
+			, SYSDATE
+			, #user_id#
+			, #client_id#
+			, #chk_year#
+			, #chk_order#
+			, #chk_type#
+			, #mtr_num#
+			, #burner_num#
+			, #inst_place_num#
+			, #bld_num#
+			, #special_num#
+			, #special_faci_flag#
+			, #special_faci_num#
+			, #file_id#
+		)
+		*/
+  -> 사진전송 완료되면 해당 폴더에 있는 전송된 이미지 삭제처리 (배치를 통해 초기화하는시점에 삭제할지 논의필요)
+  -> 전송완료 후 req 모든객체 항목의 sendYn = 'Y'로 업데이트 (infoFlag = 'Y')
+
+/* as-is 부적합,개선권고 관련 문자발송문구 셋팅부분이나, 웹링크로 대체하기 때문에 필요 시 재작성 예정
+  -> specialChkData.preuseChkWhy = '10'이며, specialChkNoGoodDetalInfo항목이 있는 대상이면 개선권고 화면으로 이동
+  -> specialChkData.preuseChkWhy != '10' && specialChkData.preuseChkWhy != '30'인 대상이면서 specialChkNoGoodDetalInfo항목 중 excepPreuseChk  != 'Y'가 아닌대상이 존재하는 경우
+	-> specialChkData.contStsCd !='30' (해지세대)가 아니면 개선권고 문자발송
+	-> revTelDdd, revTelExn, revTelNum -> 고객전화번호 셋팅
+	-> 일치하는 항목 카운트 셋팅 후 문자내용 조합 smsDesc += 문자내용
+		-> specialChkNoGoodDetalInfo항목에 (chkSecCd != '90' && notPassItemCd != '80') && excepPreuseChk != 'Y'  -> 일치하는값이 있으면 cnt1변수에 카운트 1
+		-> specialChkNoGoodDetalInfo항목에 (chkSecCd == '90' && notPassItemCd == '80') && excepPreuseChk != 'Y'  -> 일치하는값이 있으면 cnt2변수에 카운트 1
+		-> cnt1 == 0 && cnt2 > 0 (개선권고)인 경우 문자셋팅 : ****년 **월 **일(점검일) 귀 댁의 안전점검 결과 개선권고 사항이 발생되어 안내드리오니 조속한 개선을 요청드립니다.
+		-> cnt1 > 0 && cnt2 == 0 (부적합)인 경우 문자셋팅 : ****년 **월 **일(점검일) 귀 댁의 안전점검 결과 부적합 사항이 발생되어 안내드리오니 조속한 개선을 요청드립니다.
+		-> 둘다 해당하지않으면 문자셋팅 : ****년 **월 **일(점검일) 귀 댁의 안전점검 결과 부적합, 개선권고사항이 발생되어 안내드리오니 조속한 개선을 요청드립니다.
+	-> 개선예정일자가 있는 부적합상세항목 카운트 (specialChkNoGoodDetalInfo항목 검색)
+		-> chkSecCd='50' && notPassItemCd='50'를 포함하지않고/ chkSecCd='60' && notPassItemCd='50'를 포함하지않고/ chkSecCd='60' && notPassItemCd='60'를 포함하지않고/ excepPreuseChk != 'Y' 앞에 전부를 만족하는 대상중에 distinct(betterPlanYmd)값이 있는 매칭건수(cnt3) 및 개선예정일자(betterPlanYmd) 셋팅
+		-> as-is 조회쿼리
+		-> SELECT COUNT(1) as cnt3
+			 FROM ( SELECT DISTINCT BETTER_PLAN_YMD 
+					  FROM NORMAL_NOGOOD_DETAL (specialChkNoGoodDetalInfo)
+					 WHERE CHK_EXEC_NUM = specialChkData.chkExecNum
+					 AND NOT ( CHK_SEC_CD = '50' AND NOT_PASS_ITEM_CD = '50' )
+					 AND NOT ( CHK_SEC_CD = '60' AND NOT_PASS_ITEM_CD = '50' )
+					 AND NOT ( CHK_SEC_CD = '60' AND NOT_PASS_ITEM_CD = '60' )
+					 AND EXCEP_PREUSE_CHK <> 'Y' )
+		-> cnt3 값에 맞게 for문으로 개선예정일자(betterPlanYmd) 셋팅
+		-> chkSecCd='50' && notPassItemCd='50'를 포함하지않고/ chkSecCd='60' && notPassItemCd='50'를 포함하지않고/ chkSecCd='60' && notPassItemCd='60'를 포함하지않고/ excepPreuseChk != 'Y' 앞에 전부를 만족하는 대상중에 betterPlanYmd 값 조회 후 셋팅(배열)
+		-> as-is 조회쿼리
+		-> SELECT BETTER_PLAN_YMD 
+			 FROM NORMAL_NOGOOD_DETAL (specialChkNoGoodDetalInfo)
+			WHERE CHK_EXEC_NUM = specialChkData.chkExecNum
+			  AND NOT ( CHK_SEC_CD = '50' AND NOT_PASS_ITEM_CD = '50' )
+			  AND NOT ( CHK_SEC_CD = '60' AND NOT_PASS_ITEM_CD = '50' )
+			  AND NOT ( CHK_SEC_CD = '60' AND NOT_PASS_ITEM_CD = '60' )
+			  AND EXCEP_PREUSE_CHK <> 'Y'
+			GROUP BY BETTER_PLAN_YMD 
+*/
+
+5. 개선권고 목록
+ - 주소
+	-> 도로명
+	 - specialChkNoGoodInfo.newRoadNm || ' ' || specialChkNoGoodInfo.newAddrM || '-' || specialChkNoGoodInfo.newAddrS || ' ' || specialChkNoGoodInfo.specialNm
+	-> 지번
+	 - specialChkNoGoodInfo.town ||' '|| specialChkNoGoodInfo.addr1M ||'-'|| specialChkNoGoodInfo.addr1S ||' '|| specialChkNoGoodInfo.specialNm
+ - 압력 : specialChkNoGoodInfo.pressFlag (L:저압, M:중압, R:중간압, else:null)
+ - 처리결과 : specialChkNoGoodInfo.endYn (Y:완료, S:진행 else:미검)
+
+6. 개선권고 개요
+ - 고객명 : specialChkNoGoodInfo.custNm / 상호명이 있는 경우 (specialChkNoGoodInfo.firmNm)
+ - 주소 표기 (기본표기 도로명, 주소 클릭 시 지번으로 변경표기)
+	-> addrInfo += addrInfo;
+	-> 도로명
+		if(length(specialChkNoGoodInfo.county) > 0)		
+		{
+			addrInfo += specialChkNoGoodInfo.county;
+		}
+		if(length(specialChkNoGoodInfo.newRoadNm) > 0)
+		{
+			addrInfo += " ";
+			addrInfo +=  specialChkNoGoodInfo.newRoadNm;
+		}
+		if(length(specialChkNoGoodInfo.newAddrM) > 0)
+		{
+			addrInfo += " ";
+			addrInfo +=  specialChkNoGoodInfo.newAddrM;
+		}
+		if(length(specialChkNoGoodInfo.newAddrS) > 0)
+		{
+			addrInfo +=  "-" );
+			addrInfo +=  specialChkNoGoodInfo.newAddrS;
+			addrInfo +=  "\n" ;
+		}
+		if(length(specialChkNoGoodInfo.secondAddr) > 0)
+		{
+			addrInfo +=  " " );
+			addrInfo +=  specialChkNoGoodInfo.secondAddr;
+			addrInfo +=  "\n" ;
+		}
+		
+	-> 지번		
+		if(length(specialChkNoGoodInfo.county) > 0)		
+		{
+			addrInfo += specialChkNoGoodInfo.county;
+		}
+		if(length(specialChkNoGoodInfo.town) > 0)			
+		{
+			addrInfo += " ";
+			addrInfo += specialChkNoGoodInfo.town;
+		}
+		if(length(specialChkNoGoodInfo.village) > 0)			
+		{
+			addrInfo += " ";
+			addrInfo +=  specialChkNoGoodInfo.village;
+		}
+		if(length(specialChkNoGoodInfo.addr1M > 0)		
+		{
+			addrInfo += " ";
+			addrInfo +=  specialChkNoGoodInfo.addr1M);
+		}
+		if(length(specialChkNoGoodInfo.addr1S) > 0)		
+		{
+			addrInfo +=  "-" );
+			addrInfo +=  specialChkNoGoodInfo.addr1S);
+			addrInfo +=  "\n";	
+		}					
+		if(length(specialChkNoGoodInfo.secondAddr) > 0)
+		{
+			addrInfo +=  " " );
+			addrInfo +=  specialChkNoGoodInfo.secondAddr;
+			addrInfo +=  "\n" ;
+		}
+ - 특정번호 : specialChkNoGoodInfo.specialNum
+ - 점검년월 / 압력 : specialChkNoGoodInfo.objYm / specialChkNoGoodInfo.pressFlag
+
+ - 부적합이력
+	-> specialChkNoGoodChaInfo객체 및 specialChkNoGoodDetalInfo객체 항목 조합 표기
+	-> specialChkNoGoodChaInfo.betterAdviceDegree | specialChkNoGoodChaInfo.betterYn(Y:개선,N:미개선) | specialChkNoGoodDetalInfo.notPassItemNm
+	   specialChkNoGoodChaInfo.betterAdviceYmd | specialChkNoGoodChaInfo.betterAdviceExpire
+	-> ▼ 클릭 시
+	 - 점검단위 : specialChkNoGoodDetalInfo.chkSecNm
+	 - 세부항목 : specialChkNoGoodDetalInfo.notPassItemNm
+	 - 연소기번호 : specialChkNoGoodDetalInfo.burnerNum
+	 - 부적합사진 : 실시간으로 수신할지 검토중 (부적합대상 수신할때 같이 받을지)
+	-> 개선처리 : specialChkNoGoodChaInfo.betterYn = 'Y', specialChkNoGoodChaInfo.betterEndYmd(오늘일자), specialChkNoGoodChaInfo.updEmpid = equipTelNum, specialChkNoGoodChaInfo = employeeId, specialChkNoGoodChaInfo.sendYn = 'S' 셋팅
+	 - 사진촬영 폴더 및 파일명 : 2_specialChkNoGoodDetalInfo.chkExecNum_specialChkNoGoodDetalInfo.mtrNum(null=000000000)_specialChkNoGoodDetalInfo.burnerNum(null=000000)_specialChkNoGoodDetalInfo.chkSecCd_specialChkNoGoodDetalInfo.notPassItemCd
+	-> 개선처리 완료 시 : 개선일자 및 사진 표기 (specialChkNoGoodChaInfo.betterEndYmd, 사진)
+	-> 개선권고발행 : specialChkNoGoodChaInfo.betterAdviceDegree+1, specialChkNoGoodChaInfo.betterAdviceYmd(오늘일자), specialChkNoGoodChaInfo.betterAdviceExpire(오늘일자+30일)
+	 - 기존 개선권고발행일이 현재일자기준 +30일이 경과된 경우만 개선권고발행가능
+	 - specialChkNoGoodChaInfo.betterAdviceDegree+1이 3차수인 경우 공급중지여부에 따른 공급중지일자(specialChkNoGoodChaInfo.supplyStopYmd), 중지불가사유(specialChkNoGoodChaInfo.notPermitWhy) 입력
+	 - 공급중지일자는 오늘일자로 자동 셋팅, 중지불가사유는 화면코드-NOSTOP_WHY 콤보박스 셋팅
+ - 방문등록 : asis 방문등록 기능 x, 기간계 특정점검 방문이력관리 사전개발 필요
+ - 저장
+	-> specialChkNoGoodChaInfo객체 항목 중 betterAdviceDegree max값의 개선여부(betterYn)가 'Y'인 경우 부적합대상(specialChkNoGoodInfo) 항목 업데이트
+	 - specialChkNoGoodInfo.updEmpid, specialChkNoGoodInfo.pdaIp, specialChkNoGoodInfo.sendYn='S', specialChkNoGoodInfo.endYn = 'Y'
+	-> specialChkNoGoodChaInfo객체 항목 중 betterAdviceDegree max값의 개선여부(betterYn)가 'Y'가 아닌 경우 부적합대상(specialChkNoGoodInfo) 항목 업데이트
+	 - specialChkNoGoodInfo.updEmpid, specialChkNoGoodInfo.pdaIp, specialChkNoGoodInfo.sendYn='S', specialChkNoGoodInfo.endYn = 'S'
+
+	-> /api/send/safeChk/specialChkRsltNoGoodReg (req : specialChkNoGoodInfo)
+	-> specialChkNoGoodInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM  FROM C31.C3CT_SPECIAL_NOT_PASS_OBJ  WHERE CHK_EXEC_NUM = #chk_exec_num#
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_NOT_PASS_OBJ
+			(	
+				  CHK_EXEC_NUM
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, SPECIAL_NM
+				, CHK_YEAR
+				, CHK_ORDER
+				, CENTER_CD
+				, TOWN
+				, CITY
+				, COUNTY
+				, VILLAGE
+				, ADDR1_M
+				, ADDR1_S
+				, SECOND_ADDR
+				, BLD_DONG
+				, HOSU
+				, CURR_ADDR_UNION
+				, ZIP_NO1
+				, ZIP_NO2
+				, NEW_HOSU
+				, NEW_ADDR_UNGRNOUD_YN
+				, NEW_ADDR_UNION
+				, LAW_TOWN
+				, NEW_ROAD_NM
+				, NEW_ADDR_M
+				, NEW_ADDR_S
+				, SAFE_MANAGER_NM
+				, MANAGE_TEL_DDD
+				, MANAGE_TEL_EXN
+				, MANAGE_TEL_NUM
+				, MANAGE_CP_DDD
+				, MANAGE_CP_EXN
+				, MANAGE_CP_NUM
+				, PRESS_FLAG
+				, SPECIAL_YN
+				, COMPL_INSPECT_YMD
+				, MM_USE_PLAN_QTY
+				, INS_JOIN_YN
+				, CHK_EMPID
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				, #special_num#
+				, #chk_type#
+				, #special_nm#
+				, #chk_year#
+				, #chk_order#
+				, #center_cd#
+				, #town#
+				, #city#
+				, #county#
+				, #village#
+				, #addr1_m#
+				, #addr1_s#
+				, #second_addr#
+				, #bld_dong#
+				, #hosu#
+				, #curr_addr_union#
+				, #zip_no1#
+				, #zip_no2#
+				, #new_hosu#
+				, #new_addr_ungrnoud_yn#
+				, #new_addr_union#
+				, #law_town#
+				, #new_road_nm#
+				, #new_addr_m#
+				, #new_addr_s#
+				, #safe_manager_nm#
+				, #manage_tel_ddd#
+				, #manage_tel_exn#
+				, #manage_tel_num#
+				, #manage_cp_ddd#
+				, #manage_cp_exn#
+				, #manage_cp_num#
+				, #press_flag#
+				, #special_yn#
+				, #compl_inspect_ymd#
+				, #mm_use_plan_qty#
+				, #ins_join_yn#
+				, #user_id#
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS_OBJ 
+			   SET UPD_EMPID 			= #user_id#
+				 , UPD_IP      			= #client_id#
+				 , OBJ_YM		  		= TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM 				= ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , SPECIAL_NUM			= #special_num#
+				 , CHK_TYPE	 			= #chk_type#
+				 , SPECIAL_NM			= #special_nm#
+				 , CHK_YEAR	 			= #chk_year#
+				 , CHK_ORDER	 		= #chk_order#
+				 , CENTER_CD	 		= #center_cd#
+				 , CITY		 			= #city#
+				 , COUNTY		 		= #county#
+				 , TOWN		 			= #town#
+				 , VILLAGE		 		= #village#
+				 , ADDR1_M		 		= #addr1_m#
+				 , ADDR1_S		 		= #addr1_s#
+				 , SECOND_ADDR			= #second_addr#
+				 , BLD_DONG   			= #bld_dong#
+				 , HOSU       			= #hosu#      
+				 , CURR_ADDR_UNION 		= #curr_addr_union#
+				 , ZIP_NO1        		= #zip_no1#
+				 , ZIP_NO2         		= #zip_no2#
+				 , NEW_HOSU        		= #new_hosu#
+				 , NEW_ADDR_UNGRNOUD_YN = #new_addr_ungrnoud_yn#
+				 , NEW_ADDR_UNION       = #new_addr_union#
+				 , LAW_TOWN			    = #law_town#
+				 , NEW_ROAD_NM			= #new_road_nm#
+				 , NEW_ADDR_M			= #new_addr_m#
+				 , NEW_ADDR_S			= #new_addr_s#
+				 , SAFE_MANAGER_NM   	= #safe_manager_nm#
+				 , MANAGE_TEL_DDD    	= #manage_tel_ddd#
+				 , MANAGE_TEL_EXN    	= #manage_tel_exn#
+				 , MANAGE_TEL_NUM    	= #manage_tel_num#
+				 , MANAGE_CP_DDD     	= #manage_cp_ddd#
+				 , MANAGE_CP_EXN     	= #manage_cp_exn#
+				 , MANAGE_CP_NUM     	= #manage_cp_num#
+				 , PRESS_FLAG        	= #press_flag#
+				 , SPECIAL_YN        	= #special_yn#
+				 , COMPL_INSPECT_YMD 	= #compl_inspect_ymd#
+				 , MM_USE_PLAN_QTY   	= #mm_use_plan_qty#
+				 , INS_JOIN_YN       	= #ins_join_yn#
+				 , CHK_EMPID         	= #user_id#
+				 , UPD_DTM				= SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+  -> /api/send/safeChk/specialChkRsltNoGoodChaReg (req : specialChkNoGoodChaInfo)
+	-> specialChkNoGoodChaInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_BETTER_ADVICE WHERE CHK_EXEC_NUM = #chk_exec_num# AND BETTER_ADVICE_DEGREE = LPAD( #better_advice_degree#, 3, '0' )
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_BETTER_ADVICE
+			(
+				  CHK_EXEC_NUM
+				, BETTER_ADVICE_DEGREE
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, BETTER_ADVICE_YMD
+				, BETTER_ADVICE_EXPIRE
+				, BETTER_YN
+				, BETTER_END_YMD
+				, SUPPLY_STOP_YMD
+				, NOT_PERMIT_WHY
+				, CHK_YEAR
+				, CHK_ORDER
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, LPAD( #better_advice_degree#, 3, '0' )
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				, #special_num#
+				, #chk_type#
+				, #better_advice_ymd#
+				, #better_advice_expire#
+				, #better_yn#
+				, #better_end_ymd#
+				, #supply_stop_ymd#
+				, #not_permit_why#
+				, #chk_year#
+				, #chk_order#
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_BETTER_ADVICE 
+			   SET OBJ_YM               = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM              = ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , SPECIAL_NUM          = #special_num#
+				 , CHK_TYPE             = #chk_type#
+				 , BETTER_ADVICE_YMD    = #better_advice_ymd#
+				 , BETTER_ADVICE_EXPIRE = #better_advice_expire#
+				 , BETTER_YN            = #better_yn#
+				 , BETTER_END_YMD       = #better_end_ymd#
+				 , SUPPLY_STOP_YMD      = #supply_stop_ymd#
+				 , NOT_PERMIT_WHY       = #not_permit_why#
+				 , CHK_YEAR             = #chk_year#
+				 , CHK_ORDER            = #chk_order#
+				 , RSLT_REFLE_YN        = 'N'
+				 , UPD_DTM              = SYSDATE                                                             
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND BETTER_ADVICE_DEGREE = LPAD( #better_advice_degree#, 3, '0' )
+  -> /api/send/safeChk/specialChkRsltNoGoodDetalReg (req : specialChkNoGoodDetalInfo)
+	-> specialChkNoGoodDetalInfo.sendYn = 'S'인 항목들만 필터링해서 requset로 보냄
+	-> backend 참고부분
+		1) SELECT CHK_EXEC_NUM FROM C31.C3CT_SPECIAL_NOT_PASS WHERE CHK_EXEC_NUM = #chk_exec_num# AND CHK_SEC_CD = #chk_sec_cd# AND MTR_NUM = #mtr_num# AND BURNER_NUM = #burner_num# AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+		2) 1)에서 조회된 값이 없으면 insert쿼리
+			INSERT INTO C31.C3CT_SPECIAL_NOT_PASS
+			(
+				  CHK_EXEC_NUM
+				, CHK_SEC_CD
+				, MTR_NUM
+				, BURNER_NUM
+				, NOT_PASS_ITEM_CD
+				, UPD_EMPID
+				, CRT_EMPID
+				, UPD_IP
+				, CRT_IP
+				, OBJ_YM
+				, PLAN_YM
+				, CHK_YEAR
+				, CHK_ORDER
+				, SPECIAL_NUM
+				, CHK_TYPE
+				, CHK_SEC_NM
+				, NOT_PASS_ITEM_NM
+				, VISIT_DTM
+				, BETTER_PLAN_YMD
+				, BETTER_YN
+				, BETTER_END_YMD
+				, BETTER_CONF_EMPID
+				, BETTER_CONF_NM
+				, BETTER_DEGREE
+				, PHOTO_ID
+				, BETTER_PHOTO_ID
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #chk_sec_cd#
+				, #mtr_num#
+				, #burner_num#
+				, #not_pass_item_cd#
+				, #user_id#
+				, #user_id#
+				, #client_id#
+				, #client_id#
+				, TO_CHAR(SYSDATE,'yyyymm')
+				, (SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num#)
+				, #chk_year#
+				, #chk_order#
+				, #special_num#
+				, #chk_type#
+				, #chk_sec_nm#
+				, #not_pass_item_nm#
+				, TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				, #better_plan_ymd#
+				, #better_yn#
+				, #better_end_ymd#
+				, #better_conf_empid#
+				, #better_conf_nm#
+				, LPAD( #better_degree#, 3, '0' )
+				, 0
+				, 0
+			)
+		3) 1)에서 조회된 값이 있으면 update쿼리
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS 
+			   SET OBJ_YM            = TO_CHAR(SYSDATE,'yyyymm')
+				 , PLAN_YM 			 = ( SELECT PLAN_YM FROM C31.C3CT_SPECIAL_OBJ_PDA WHERE CHK_EXEC_NUM = #chk_exec_num# )
+				 , CHK_YEAR          = #chk_year#
+				 , CHK_ORDER         = #chk_order#
+				 , SPECIAL_NUM       = #special_num#
+				 , CHK_TYPE          = #chk_type#
+				 , CHK_SEC_NM        = #chk_sec_nm#
+				 , NOT_PASS_ITEM_NM  = #not_pass_item_nm#
+				 , VISIT_DTM         = TO_DATE(#visit_dtm#,'YYYYMMDDHH24MISS')
+				 , BETTER_PLAN_YMD   = #better_plan_ymd#
+				 , BETTER_YN         = #better_yn#
+				 , BETTER_END_YMD    = #better_end_ymd#
+				 , BETTER_CONF_EMPID = #better_conf_empid#
+				 , BETTER_CONF_NM    = #better_conf_nm#
+				 , BETTER_DEGREE     = LPAD( #better_degree#, 3, '0' )
+				 , RSLT_REFLE_YN	 = 'N'
+				 , UPD_DTM			 = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#	
+  -> /api/send/specialChk/specialChkRsltNoGoodPhotoReg (req : specialChkNoGoodPhotoInfo)
+	-> 사진폴더 - PHOTO_SPECIALCHK
+	-> 부적합사진은 전송할 specialChkNoGoodInfo객체 항목추가해서 request
+	-> 부적합 사진은 부적합사진, 개선완료사진이있는데 이는 사진파일명의 맨앞자리 숫자로 구분 (1:부적합, 2:개선)
+		-> 언더하이픈을 구분자로하여 자릿수별 추출된 항목 변수 셋팅
+		-> ex)1번째_2번째_3번째_4번째_5번째_6번째
+		-> gubun
+		-> chkExecNum
+		-> mtrNum
+		-> burnerNum
+		-> chkSecCd
+		-> notPassItemCd
+		-> photo -> 사진 base64
+		-> updEmpId -> init-data.employeeData.employeeId
+		-> updIp	-> init-data.employeeData.equipTelNum
+		-> specialChkNoGoodPhotoInfo 신규객체 생성하여 위 항목 셋팅 (총 9개 항목)
+	-> backend 참고부분
+		b64sign = req.getPhoto();
+		byte[] bsign = Base64.decodeBase64( b64sign );
+		map.put("photo_b", bsign);
+		
+		file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+		/*
+		SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+		*/
+		if(file_Seqs == null)
+		{
+			rep.setCode("FR412310");
+			rep.setMessage("파일ID 생성 실패 했습니다.");
+			return rep;
+		}
+		
+		szfileid = file_Seqs.get(0).getSeq();
+		map.put( "file_id", szfileid );
+		map.put( "file_code", "C32" );
+		
+		/exdat03/C30/C32
+		szpath += File.separator+yyyy+File.separator+mm;
+		File path = new File(szpath);
+		if (!path.exists())
+		{
+			path.mkdirs();
+		}
+		
+		map.put( "file_path", szpath );
+		if( req.getGubun().equals("1")  )
+			szfilenm = "C34E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"N"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+		else
+			szfilenm = "C34E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"B"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+		
+		map.put( "file_name", szfilenm );
+		
+		f = new CFile( szpath + "/" + szfilenm );
+		f.OpenReadWrite();
+		f.Write(bsign, bsign.length );
+		f.Close();
+		file_size = bsign.length;
+		szfilesize = String.valueOf(file_size);
+		 
+		map.put( "file_size", szfilesize );
+		
+		retchk = adaptor.insert("call_FR312317_File_Insert", map);
+		/*
+			INSERT INTO C31.C3AT_FILE_INFO_PDA
+			(
+				  FILE_ID
+				, FILE_NAME
+				, ORG_FILE_NAME
+				, FILE_CODE
+				, FILE_PATH
+				, FILE_SIZE
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, PHOTO_SEND_YMD
+			)
+			VALUES
+			(
+			      #file_id#
+				, #file_name#
+				, #file_name#
+				, #file_code#
+				, #file_path#
+				, #file_size#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, TO_CHAR(SYSDATE,'yyyymmdd')
+			)
+		*/
+		if (ret < 0)
+		{
+			rep.setCode( "FR412310" );
+			rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+			return rep;
+		}
+		
+		if( req.getGubun().equals("1")  )
+		{
+			ret = smct.update("call_FR412310_photo", map);
+			/*
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS 
+			   SET PHOTO_ID  = #file_id#
+			     , UPD_DTM   = SYSDATE
+			     , UPD_EMPID = #userid#
+				 , UPD_IP    = #clientid#
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+			*/
+			//레코드가 한개도 반영되지 않은 경우.
+			if (ret < 0)
+			{
+				rep.setCode( "FR412310" );
+				rep.setMessage("부적합 상세 등록에 실패했습니다.");
+				return rep;
+			}
+		}
+		else
+		{
+			ret = smct.update("call_FR412310_Bphoto", map);
+			/*
+			UPDATE C31.C3CT_SPECIAL_NOT_PASS
+			   SET BETTER_PHOTO_ID = #file_id#
+			     , UPD_DTM         = SYSDATE
+			     , UPD_EMPID = #userid#
+				 , UPD_IP    = #clientid#
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#	
+			*/
+			//레코드가 한개도 반영되지 않은 경우.
+			if (ret < 0)
+			{
+				rep.setCode( "FR412310" );
+				rep.setMessage( "개선완료 사진 등록에 실패했습니다." );
+				return rep;
+			}
+		}

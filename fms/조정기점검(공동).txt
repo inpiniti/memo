@@ -1,0 +1,844 @@
+1. 조정기점검 목록
+ - 주소표기
+	-> safeChkRegtrInfo객체 항복별 주소조홥
+	-> singleColiveFlag(단독/공동에 따른 주소표기)
+	-> 지번
+	-> singleColiveFlag = 10 -> addr1M || '-' || addr1S|| ' ' || houseCnt || '-' || lotNumSecondAddr
+	-> singleColiveFlag = 20 -> coLIveNm || ' ' || bldNm || '-' || houseCnt
+	-> 도로명
+	-> singleColiveFlag = 10 -> newRoadNm || ' ' || newAddrM || '-' || newAddrS || '-' || houseCnt || '-' || lotNumSecondAddr 
+	-> singleColiveFlag = 20 -> coLIveNm || ' ' || bldNm || '-' || houseCnt
+ - 구분 : safeChkRegtrInfo.singleColiveFlag (10:단독, 20:공동)
+ - 필터 : safeChkRegtrInfo.regtrFilterFlag (10:"1inch", 20::"1inch", 30:"3inch", 40:"4inch")
+ - 처리결과 : safeChkRegtrInfo.chkRslt (화면코드-SAFECHK_RSLT)
+
+2. 조정기점검 개요
+ - 조정기점검 화면(객체명 safeChkRegtrInfo)
+ - 주소
+	-> safeChkRegtrInfo.newRoadNm || (null이면 ''처리)
+	-> safeChkRegtrInfo.newAddrS 값이 null이 아니면 ' ' || safeChkRegtrInfo.newAddrM || '-' || safeChkRegtrInfo.newAddrS ||
+	-> safeChkRegtrInfo.newAddrS 값이 null이면 safeChkRegtrInfo.newAddrM	 
+	-> 최종조합 : safeChkRegtrInfo.newRoadNm || ' ' || safeChkRegtrInfo.newAddrM || '-' || safeChkRegtrInfo.newAddrS
+ - 조정기번호 -> regtrNum
+ - S/N		-> regtrIdNum
+ - 작업구분	-> 화면코드 SAFECHK_REGTR_WORK : generRegtrChkFlag값에 따른 name표기
+ - 형태		-> 화면코드 SINGLE_COLIVE_CD : singleColiveFlag값에 따른 name표기
+ - 전수		-> safeChkRegtrMtrInfo객체 내 count값
+ - 위치		-> regtrLocFlag
+ - 제작사	-> makerNm
+ - 모델명	-> regtrModelNm
+ - 1차압력	-> firstPress
+ - 타입		-> regtrLrTypeNm
+ - 설치일	-> regtrInstYmd
+ - 필터교체일 -> filterReplYmd
+ - 점검이력 : 이전점검 fhalfChkRslt(화면코드:SAFECHK_RSLT - code값에 따른 name표기) / fhalfChkYmd / fhalfChkerNm
+	A. 점검불가 - 화면코드 : CHK_EXCEP_WHY
+	-> safeChkRegtrInfo 객체 업데이트
+	-> safeChkRegtrInfo.chkExcepWhy	->	사유 입력값
+	-> safeChkRegtrInfo.chkEndYn		->	'S'
+	-> safeChkRegtrInfo.chkYmd		->	오늘일자
+	-> safeChkRegtrInfo.chkStrDtm	->	yyyymmddhh24miss
+	-> safeChkRegtrInfo.chkEndDtm	->	yyyymmddhh24miss
+	-> safeChkRegtrInfo.updEmpNm		->	init-data.employeeData.nmKor
+	-> safeChkRegtrInfo.chkRslt		->	'40'
+	-> safeChkRegtrInfo.chkEmpId		->	init-data.employeeData.employeeId
+	-> safeChkRegtrInfo.updEmpId		->	init-data.employeeData.employeeId 
+ - safeChkRegtrInfo 객체를 request로 셋팅
+ - /api/safeChk/safeChkRegtrChkRsltReg 조정기점검 결과 등록(제외) api호출
+ - 정상등록 처리가 되면 safeChkRegtrInfo.chkEndYn = 'Y' 업데이트
+ /*
+ rep_item = (List<FR312312_OUT_Item>) adaptor.queryForList("call_FR312312", map);
+ /*
+ 	 SELECT REGTR_NUM
+ 	  , SAFE_CHK_TYPE
+    FROM C31.C3CT_GENER_REGTR_CHK_RSLT
+   WHERE REGTR_NUM = #regtr_num#
+ 	AND CHK_PLAN_YM = #chk_plan_ym#
+ 	AND SAFE_CHK_TYPE = #safe_chk_type#
+ */
+ b64sign = req_item.getChk_sign_image();
+ if(b64sign != null)
+ {
+ 	byte[] bsign = Base64.decodeBase64( b64sign );
+ 	map.put("cust_sign", bsign );
+ }
+ 
+ if( rep_item.size() == 0)
+ {
+ 	retchk = adaptor.insert("call_FR312312_Insert", map);
+ 	/*
+ 		INSERT INTO C31.C3CT_GENER_REGTR_CHK_RSLT
+ 		(
+ 			  REGTR_NUM
+ 			, CHK_PLAN_YM
+ 			, SAFE_CHK_TYPE
+ 			, UPD_EMPID
+ 			, UPD_IP
+ 			, CRT_EMPID
+ 			, CRT_IP
+ 			, FILTER_REPL_FLAG
+ 			, FILTER_REPL_YMD
+ 			, BAR
+ 			, BAR_NOT_PERMIT_WHY
+ 			, CHK_EMPID
+ 			, CHK_YMD
+ 			, CHK_RSLT
+ 			, CHK_EXCEP_WHY
+ 			, SECOND_PRESS
+ 			, CHK_SIGN_IMAGE
+ 			, MEMO
+ 			, MEMO_FLAG
+ 			, CHK_STR_DTM
+ 			, CHK_END_DTM
+ 			, SINGLE_COLIVE_FLAG
+ 			, GENER_REGTR_CHK_FLAG
+ 			, BRANCH_CD
+ 			, CENTER_CD
+ 			, SEND_YMD
+ 			, SPECIAL_ETC
+ 		)
+ 		VALUES
+ 		(
+ 			  #regtr_num#
+ 			, #chk_plan_ym#
+ 			, #safe_chk_type#
+ 			, #user_id#
+ 			, #client_id#
+ 			, #user_id#
+ 			, #client_id#
+ 			, #filter_repl_flag#
+ 			, #filter_repl_ymd#
+ 			, #bar#
+ 			, #bar_not_permit_why#
+ 			, #user_id#
+ 			, #chk_ymd#
+ 			, #chk_rslt#
+ 			, #chk_excep_why#
+ 			, #second_press#
+ 			, #cust_sign#
+ 			, #memo#
+ 			, #memo_flag#
+ 			, TO_DATE(#chk_str_dtm#,'YYYYMMDDHH24MISS')
+ 			, TO_DATE(#chk_end_dtm#,'YYYYMMDDHH24MISS')
+ 			, #single_colive_flag#
+ 			, #gener_regtr_chk_flag#
+ 			, #branch_cd#
+ 			, #center_cd#
+ 			, TO_CHAR(SYSDATE,'yyyymmdd')
+ 			, #special_etc#
+ 		)
+ 	*/
+ }
+ else
+ {
+ 	ret = adaptor.update("call_FR312312_Update", map);
+ 	/*
+ 		UPDATE C31.C3CT_GENER_REGTR_CHK_RSLT
+ 		   SET UPD_EMPID 		  = #user_id# 
+ 			 , UPD_IP 			  = #client_id# 
+ 			 , CRT_EMPID 		  = #user_id# 
+ 			 , CRT_IP 			  = #client_id# 
+ 			 , FILTER_REPL_FLAG   = #filter_repl_flag# 
+ 			 , FILTER_REPL_YMD    = #filter_repl_ymd# 
+ 			 , BAR 				  = #bar# 
+ 			 , BAR_NOT_PERMIT_WHY = #bar_not_permit_why# 
+ 			 , CHK_EMPID 		  = #user_id# 
+ 			 , CHK_YMD 			  = #chk_ymd# 
+ 			 , CHK_RSLT 		  = #chk_rslt# 
+ 			 , CHK_EXCEP_WHY	  = #chk_excep_why# 
+ 			 , SECOND_PRESS		  = #second_press# 
+ 			 , CHK_SIGN_IMAGE	  = #cust_sign# 
+ 			 , MEMO				  = #memo# 
+ 			 , MEMO_FLAG		  = #memo_flag# 
+ 			 , CHK_STR_DTM		  = TO_DATE(#chk_str_dtm#,'YYYYMMDDHH24MISS') 
+ 			 , CHK_END_DTM		  = TO_DATE(#chk_end_dtm#,'YYYYMMDDHH24MISS') 
+ 			 , SINGLE_COLIVE_FLAG = #single_colive_flag# 
+ 			 , BRANCH_CD		  = #branch_cd# 
+ 			 , CENTER_CD		  = #center_cd# 
+ 			 , SEND_YMD			  = TO_CHAR(SYSDATE,'yyyymmdd') 
+ 			 , SPECIAL_ETC		  = #special_etc# 
+ 			 , UPD_DTM			  = SYSDATE
+ 		 WHERE REGTR_NUM = #regtr_num#
+ 		   AND CHK_PLAN_YM = #chk_plan_ym#
+ 		   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 	*/
+ 	if(ret <= 0)
+ 	{
+ 		rep.setCode("FR312312");
+ 		rep.setMessage("점검결과 등록에 실패했습니다.");
+ 		rep.setRet(-1);
+ 		return rep;
+ 	}
+ }
+ 
+ ret = adaptor.update("call_FR312312_Obj", map);
+ /*
+ 	UPDATE C31.C3CT_GENER_REGTR_CHK_PLAN 
+    SET CHK_END_YN = 'Y' 
+ 	 , UPD_EMPID  = #user_id#
+ 	 , UPD_IP     = #client_id#
+ 	 , UPD_DTM    = SYSDATE
+  WHERE REGTR_NUM = #regtr_num#
+    AND CHK_PLAN_YM = #chk_plan_ym#
+    AND SAFE_CHK_TYPE = #safe_chk_type#
+ */
+ if(ret <= 0)
+ {
+ 	rep.setCode("FR312312");
+ 	rep.setMessage("점검결과 등록에 실패했습니다.");
+ 	rep.setRet(-1);
+ 	return rep;
+ }
+ */
+ 
+ B. 화면 우측상단 "더보기(상세정보)" 클릭 시 상세정보 화면으로 이동
+ a) 조정기 정보 (safeChkRegtrInfo객체 항목 바인딩)
+  -> 제작사  : init-data -> useMaker -> makerFlag값이 30인 대상을 콤보박스로 표기 (makerNum[code], makerNm[name])
+  -> 모델	  : init-data -> regtrModel -> makerNum = safeChkRegtrInfo.makerNum과 일차하는 대상을 콤보박스 표기 (regtrModelCd[code], regtrModelNm[name])
+  -> 타입	  : regtrType (화면코드 SAFECHK_REGTR_TYPE)
+  -> S/N	  : regtrIdNum
+  -> 구분	  : singleColiveFlag
+ 	-> 수정사항이 있는 경우 객체 업데이트 (safeChkRegtrInfo.infoFlag = 'S' 셋팅)
+ 	-> 저장 시 수정사항이 있는 경우 조정기정보변경등록 api 호출 (/api/safeChk/regtrInfoChgReg)
+ 	-> 정상 등록 완료되었으면 safeChkRegtrInfo.infoFlag = 'Y' 셋팅
+ 	/* backend 참고부분
+ 	rep_item = (List<FR312311_OUT_Item>) adaptor.queryForList("call_FR312311", map);
+ 	/*
+ 	SELECT REGTR_NUM
+ 		 , SAFE_CHK_TYPE
+ 	  FROM C31.C3CT_REGTR_CHG_INFO
+ 	 WHERE REGTR_NUM = #regtr_num#
+ 	   AND CHK_PLAN_YM = #chk_plan_ym#
+ 	   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 	*/
+ 	if(rep_item != null )
+ 	{
+ 		if( rep_item.size() == 0)
+ 		{
+ 			retchk = adaptor.insert("call_FR312311_Insert", map);
+ 			/*
+ 			INSERT INTO C31.C3CT_REGTR_CHG_INFO  
+ 			(
+ 				  REGTR_NUM
+ 				, CHK_PLAN_YM
+ 				, SAFE_CHK_TYPE
+ 				, UPD_EMPID 
+ 				, UPD_IP  
+ 				, CRT_EMPID,CRT_IP   
+ 				, MAKER_NUM
+ 				, REGTR_MODEL_CD
+ 				, REGTR_TYPE 
+ 				, REGTR_ID_NUM  
+ 				, SINGLE_COLIVE_FLAG 
+ 				, CHG_INFO_REFLE_DTM 
+ 			) 
+ 			VALUES
+ 			(
+ 				  #regtr_num#
+ 				, #chk_plan_ym#
+ 				, #safe_chk_type#
+ 				, #user_id#
+ 				, #client_id#
+ 				, #user_id#
+ 				, #client_id#
+ 				, #maker_num#
+ 				, #regtr_model_cd#
+ 				, #regtr_type#
+ 				, #regtr_id_num#
+ 				, #single_colive_flag#
+ 				, SYSDATE
+ 			)
+ 			*/
+ 		}
+ 		else
+ 		{
+ 			ret = adaptor.update("call_FR312311_Update", map);
+ 			/*
+ 			UPDATE C31.C3CT_REGTR_CHG_INFO
+ 			   SET UPD_EMPID          = #user_id#
+ 				 , UPD_IP             = #client_id#
+ 				 , MAKER_NUM          = #maker_num#
+ 				 , REGTR_MODEL_CD     = #regtr_model_cd#
+ 				 , REGTR_TYPE         = #regtr_type#
+ 				 , REGTR_ID_NUM       = #regtr_id_num#
+ 				 , SINGLE_COLIVE_FLAG = #single_colive_flag#
+ 				 , CHG_INFO_REFLE_DTM = SYSDATE 
+ 				 , UPD_DTM            = SYSDATE
+ 			 WHERE REGTR_NUM = #regtr_num#
+ 			   AND CHK_PLAN_YM = #chk_plan_ym#
+ 			   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 			*/
+ 			//레코드가 한개도 반영되지 않은 경우.
+ 			if(ret <= 0)
+ 			{
+ 				rep.setCode( "FR312311" );
+ 				rep.setMessage("조정기 정보 등록에 실패했습니다.");
+ 				rep.setRet(-1);
+ 				return rep;
+ 			}
+ 		}
+ 	}
+ 	else
+ 	{
+ 		rep.setCode( "FR312311" );
+ 		rep.setMessage("조정기 정보 등록에 실패했습니다.");
+ 		rep.setRet(-1);
+ 		return rep;
+ 	}
+ 	*/
+ 
+ b) 계량기 목록 (safeChkRegtrMtrInfo객체)
+  - 기물번호 : mtrIdNum / 위치 : mtrLocFlag / 구분 : defalut값은 "-" (기존 계량기대상), 신규 또는 삭제건은 regtrResouChgSts값으로 표기 (30:신규, 20:삭제)
+ 
+  - 삭제버튼 클릭
+   -> 현장에서 신규추가한 대상이면 대상 delete
+   -> 기존 수신받은 대상이면 정보 업데이트
+ 	- safeChkRegtrMtrInfo.regtrResouChgSts = '20'
+ 	- safeChkRegtrMtrInfo.sendYn = 'S'
+ 	- safeChkRegtrMtrInfo.empId = init-data.employeeData.employeeId
+ 	- safeChkRegtrMtrInfo.updEmpId = init-data.employeeData.employeeId
+ 
+  - 신규버튼 클릭
+   -> 수기입력된 mtrIdNum값 검증 -> safeChkRegtrMtrInfo객체내 일치하는 대상 확인 -> 있으면 "중복된 기물번호입니다." 알림 메세지 노출
+   -> 신규추가할땐 기물번호만 저장, 위치 입력x
+   -> safeChkRegtrMtrInfo객체 항목 추가
+ 	- safeChkRegtrMtrInfo.regtrNum			-> safeChkRegtrInfo.regtrNum
+ 	- safeChkRegtrMtrInfo.chkPlanYm			-> safeChkRegtrInfo.chkPlanYm
+ 	- safeChkRegtrMtrInfo.safeChkType		-> safeChkRegtrInfo.safeChkType
+ 	- safeChkRegtrMtrInfo.mtrIdNum			-> 입력값
+ 	- safeChkRegtrMtrInfo.regtrResouChgSts	-> '30'
+ 	- safeChkRegtrMtrInfo.empId				-> init-data.employeeData.employeeId
+ 	- safeChkRegtrMtrInfo.updEmpid			-> init-data.employeeData.employeeId
+ 	- safeChkRegtrMtrInfo.sendYn			-> 'S'
+ 
+  - 저장버튼 클릭
+ 	-> 수정 또는 추가된 safeChkRegtrMtrInfo객체 request항목
+ 	-> 조정기계량기정보등록 api 호출 (/api/safeChk/regtrMtrInfoReg)
+ 	-> 등록 후 safeChkRegtrMtrInfo.sendYn = 'Y' 업데이트
+ 	/* backend 참고부분
+ 	rep_item = (List<FR312319_OUT_Item>) adaptor.queryForList("call_FR312319", map);
+ 	/*
+ 	SELECT REGTR_NUM
+ 		 , CHK_PLAN_YM 
+ 	  FROM C31.C3CT_GENER_REGTR_CNT_CHG
+ 	 WHERE REGTR_NUM = #regtr_num#
+ 	   AND CHK_PLAN_YM = #chk_plan_ym#
+ 	   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 	   AND MTR_ID_NUM = #mtr_id_num#
+ 	*/
+ 	if(rep_item != null )
+ 	{
+ 		if( rep_item.size() == 0)
+ 		{
+ 			retchk = adaptor.insert("call_FR312319_Insert", map);
+ 			/*
+ 			INSERT INTO C31.C3CT_GENER_REGTR_CNT_CHG 
+ 			(
+ 				  REGTR_NUM
+ 				, CHK_PLAN_YM
+ 				, SAFE_CHK_TYPE
+ 				, MTR_ID_NUM
+ 				, UPD_EMPID
+ 				, CRT_EMPID
+ 				, MTR_NUM
+ 				, REGTR_RESOU_CHG_STS
+ 				, RSLT_REFLE_YMD
+ 			)      
+ 			VALUES 
+ 			(
+ 				  #regtr_num#
+ 				, #chk_plan_ym#
+ 				, #safe_chk_type#
+ 				, #mtr_id_num#
+ 				, #user_id#
+ 				, #user_id#
+ 				, #mtr_num#
+ 				, #regtr_resou_chg_sts#
+ 				, SYSDATE
+ 			)
+ 			*/
+ 		}
+ 		else
+ 		{
+ 			ret = adaptor.update("call_FR312319_Update", map);
+ 			/*
+ 			UPDATE C31.C3CT_GENER_REGTR_CNT_CHG
+ 			   SET UPD_EMPID           = #user_id#
+ 				 , CRT_EMPID           = #user_id#
+ 				 , MTR_NUM             = #mtr_num#
+ 				 , REGTR_RESOU_CHG_STS = #regtr_resou_chg_sts#
+ 				 , RSLT_REFLE_YMD      = SYSDATE
+ 				 , UPD_DTM             = SYSDATE
+ 			 WHERE REGTR_NUM = #regtr_num#
+ 			   AND CHK_PLAN_YM = #chk_plan_ym#
+ 			   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 			   AND MTR_ID_NUM = #mtr_id_num#
+ 			*/
+ 			//레코드가 한개도 반영되지 않은 경우.
+ 			if(ret <= 0)
+ 			{
+ 				rep.setCode( "FR312319" );
+ 				rep.setMessage("전수정보 등록에 실패했습니다.");
+ 				rep.setRet(-1);
+ 				return rep;
+ 			}
+ 		}
+ 	}
+ 	else
+ 	{
+ 		rep.setCode( "FR312319" );
+ 		rep.setMessage("전수정보 등록에 실패했습니다.");
+ 		rep.setRet(-1);
+ 		return rep;
+ 	}
+ 	*/
+ 
+ c) 조정기정보 변경사항이있는지여부와 계량기정보 추가 또는 삭제 이력이 있는지 여부를 판단하여 각기 api호출 처리하면됨
+  - 순서는 조정기정보부터 검증 후 그 다음 계량기정보 검증
+ 
+ C. 점검시작 버튼
+ - 조정기점검(공동) 점검진행 화면으로 이동 (safeChkRegtrInfo.chkStrDtm 현재시간 셋팅 [yyyymmddhh24miss])
+ - 작동상태 - 화면코드 : SAFECHK_REGTR_WRKSTT
+  -> 부적합 항목 생성을 위한 safeChkRegtrNoGoodInfo 사전 셋팅
+  -> safeChkRegtrNoGoodInfo.regtrNotPassFlag	-> '20'
+ - 가스누출여부 - 화면코드 : SAFECHK_REGTR_GAS
+  -> 부적합 항목 생성을 위한 safeChkNoGoodDetalInfo객체에 사전 셋팅
+  -> safeChkRegtrNoGoodInfo.regtrNotPassFlag	-> '30'
+ - 조정기 - 화면코드 : SAFECHK_REGTR_CHKTGT
+  -> 부적합 항목 생성을 위한 safeChkNoGoodDetalInfo객체에 사전 셋팅
+  -> safeChkRegtrNoGoodInfo.regtrNotPassFlag	-> '40'
+ - 기타 
+  -> 필터교체(filterReplFlag) - 화면코드 : FILTER_CHG (버튼)
+  -> 출구압력 : safeChkRegtrInfo.secondPress | kpa
+  -> 특이사항(specialEtc) - 화면코드 : RMK (콤보박스)
+ 
+ - 부적합 항목이 선택된 경우 사진촬영
+ - 사진촬영 후 해당 사진파일명 셋팅 (safeChkRegtrInfo객체)
+  -> safeChkRegtrInfo.regtrNum_safeChkRegtrInfo.chkPlanYm_safeChkRegtrInfo.safeChkType_safeChkRegtrInfo.safeChkRegtrNoGoodInfo.regtrNotPassFlag_safeChkRegtrInfo.notPassItem(부적합항목코드)
+ - 폴더명 : PHOTO_REGTR 저장
+ - 부적합 항목(safeChkRegtrNoGoodInfo)객체에 항목 추가
+  -> safeChkRegtrNoGoodInfo.regtrNum		-> safeChkRegtrInfo.regtrNum
+  -> safeChkRegtrNoGoodInfo.chkPlanYm		-> safeChkRegtrInfo.chkPlanYm
+  -> safeChkRegtrNoGoodInfo.safeChkType		-> safeChkRegtrInfo.safeChkType
+  -> safeChkRegtrNoGoodInfo.regtrNotPassFlag	-> 사전 셋팅값
+  -> safeChkRegtrNoGoodInfo.regtrNotPassItem	-> 부적합항목코드
+  -> safeChkRegtrNoGoodInfo.notPassBetterYmd	-> 오늘일자 (부적합->적합인 경우 null)
+  -> safeChkRegtrNoGoodInfo.correctionFlag	-> 'Y'	(부적합->적합인 경우 'N')
+  -> safeChkRegtrNoGoodInfo.sendYn			-> 'S'
+  -> safeChkRegtrNoGoodInfo.empId			-> init-data.employeeData.employeeId
+  -> safeChkRegtrNoGoodInfo.updEmpId			-> init-data.employeeData.employeeId
+ - 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete
+ 
+ - 저장 버튼 클릭 (safeChkRegtrInfo.chkEndDtm 현재시간 셋팅 [yyyymmddhh24miss])
+  -> safeChkRegtrInfo객체 항목 업데이트 후 request OR 부적합이 있는 경우 safeChkNoGoodInfo객체 request
+  -> safeChkRegtrInfo객체 항목 업데이트
+  -> safeChkRegtrInfo.chkStrDtm
+  -> safeChkRegtrInfo.chkEndDtm
+  -> safeChkRegtrInfo.chkEmpId	-> init-data.employeeData.employeeId
+  -> safeChkRegtrInfo.chkYmd		-> 오늘일자
+  -> safeChkRegtrInfo.filterReplFlag	-> 입력값 (교체:30 인 경우 safeChkRegtrInfo.newFilterReplYmd -> 오늘일자 셋팅)
+  -> safeChkRegtrInfo.secondPress	-> 입력값
+  -> safeChkRegtrInfo.specialEtc	-> 입력값
+  -> safeChkRegtrInfo.chkEndYn	-> 'S'
+  -> safeChkRegtrInfo.updEmpId	-> init-data.employeeData.employeeId
+  -> safeChkRegtrInfo.updEmpNm	-> init-data.employeeData.nmKor
+  -> safeChkRegtrInfo.chkRslt	-> safeChkNoGoodInfo객체에 regtrNum,chkPlanYm,safeChkType에 해당하는 항목이 있는 경우 '21' 없으면 '20'
+  -> safeChkRegtrInfo.chkSignImage -> 서명이미지(base64변환 후 기간계 blob)
+  
+  -> /api/safeChk/safeChkRegtrChkRsltReg 조정기점검 결과 등록(제외) api호출
+  -> 정상 등록 완료 후 safeChkRegtrInfo.chkEndYn = 'Y' 업데이트
+  /* backend 참고부분
+ 	rep_item = (List<FR312312_OUT_Item>) adaptor.queryForList("call_FR312312", map);
+ 	/*
+ 	SELECT REGTR_NUM
+ 		  , SAFE_CHK_TYPE
+ 	   FROM C31.C3CT_GENER_REGTR_CHK_RSLT
+ 	  WHERE REGTR_NUM = #regtr_num#
+ 		AND CHK_PLAN_YM = #chk_plan_ym#
+ 		AND SAFE_CHK_TYPE = #safe_chk_type#
+ 	*/
+ 	b64sign = req_item.getChk_sign_image();
+ 	if(b64sign != null)
+ 	{
+ 		byte[] bsign = Base64.decodeBase64( b64sign );
+ 		map.put("cust_sign", bsign );
+ 	}
+ 	
+ 	if( rep_item.size() == 0)
+ 	{
+ 		retchk = adaptor.insert("call_FR312312_Insert", map);
+ 		/*
+ 		INSERT INTO C31.C3CT_GENER_REGTR_CHK_RSLT
+ 		(
+ 			  REGTR_NUM
+ 			, CHK_PLAN_YM
+ 			, SAFE_CHK_TYPE
+ 			, UPD_EMPID
+ 			, UPD_IP
+ 			, CRT_EMPID
+ 			, CRT_IP
+ 			, FILTER_REPL_FLAG
+ 			, FILTER_REPL_YMD
+ 			, BAR
+ 			, BAR_NOT_PERMIT_WHY
+ 			, CHK_EMPID
+ 			, CHK_YMD
+ 			, CHK_RSLT
+ 			, CHK_EXCEP_WHY
+ 			, SECOND_PRESS
+ 			, CHK_SIGN_IMAGE
+ 			, MEMO
+ 			, MEMO_FLAG
+ 			, CHK_STR_DTM
+ 			, CHK_END_DTM
+ 			, SINGLE_COLIVE_FLAG
+ 			, GENER_REGTR_CHK_FLAG
+ 			, BRANCH_CD
+ 			, CENTER_CD
+ 			, SEND_YMD
+ 			, SPECIAL_ETC
+ 		)
+ 		VALUES
+ 		(
+ 			  #regtr_num#
+ 			, #chk_plan_ym#
+ 			, #safe_chk_type#
+ 			, #user_id#
+ 			, #client_id#
+ 			, #user_id#
+ 			, #client_id#
+ 			, #filter_repl_flag#
+ 			, #filter_repl_ymd#
+ 			, #bar#
+ 			, #bar_not_permit_why#
+ 			, #user_id#
+ 			, #chk_ymd#
+ 			, #chk_rslt#
+ 			, #chk_excep_why#
+ 			, #second_press#
+ 			, #cust_sign#
+ 			, #memo#
+ 			, #memo_flag#
+ 			, TO_DATE(#chk_str_dtm#,'YYYYMMDDHH24MISS')
+ 			, TO_DATE(#chk_end_dtm#,'YYYYMMDDHH24MISS')
+ 			, #single_colive_flag#
+ 			, #gener_regtr_chk_flag#
+ 			, #branch_cd#
+ 			, #center_cd#
+ 			, TO_CHAR(SYSDATE,'yyyymmdd')
+ 			, #special_etc#
+ 		)
+ 		*/
+ 	}
+ 	else
+ 	{
+ 		ret = adaptor.update("call_FR312312_Update", map);
+ 		/*
+ 		UPDATE C31.C3CT_GENER_REGTR_CHK_RSLT
+ 		   SET UPD_EMPID 		  = #user_id# 
+ 			 , UPD_IP 			  = #client_id# 
+ 			 , CRT_EMPID 		  = #user_id# 
+ 			 , CRT_IP 			  = #client_id# 
+ 			 , FILTER_REPL_FLAG   = #filter_repl_flag# 
+ 			 , FILTER_REPL_YMD    = #filter_repl_ymd# 
+ 			 , BAR 				  = #bar# 
+ 			 , BAR_NOT_PERMIT_WHY = #bar_not_permit_why# 
+ 			 , CHK_EMPID 		  = #user_id# 
+ 			 , CHK_YMD 			  = #chk_ymd# 
+ 			 , CHK_RSLT 		  = #chk_rslt# 
+ 			 , CHK_EXCEP_WHY	  = #chk_excep_why# 
+ 			 , SECOND_PRESS		  = #second_press# 
+ 			 , CHK_SIGN_IMAGE	  = #cust_sign# 
+ 			 , MEMO				  = #memo# 
+ 			 , MEMO_FLAG		  = #memo_flag# 
+ 			 , CHK_STR_DTM		  = TO_DATE(#chk_str_dtm#,'YYYYMMDDHH24MISS') 
+ 			 , CHK_END_DTM		  = TO_DATE(#chk_end_dtm#,'YYYYMMDDHH24MISS') 
+ 			 , SINGLE_COLIVE_FLAG = #single_colive_flag# 
+ 			 , BRANCH_CD		  = #branch_cd# 
+ 			 , CENTER_CD		  = #center_cd# 
+ 			 , SEND_YMD			  = TO_CHAR(SYSDATE,'yyyymmdd') 
+ 			 , SPECIAL_ETC		  = #special_etc# 
+ 			 , UPD_DTM			  = SYSDATE
+ 		 WHERE REGTR_NUM = #regtr_num#
+ 		   AND CHK_PLAN_YM = #chk_plan_ym#
+ 		   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 		*/
+ 		if(ret <= 0)
+ 		{
+ 			rep.setCode("FR312312");
+ 			rep.setMessage("점검결과 등록에 실패했습니다.");
+ 			rep.setRet(-1);
+ 			return rep;
+ 		}
+ 	}
+ 	
+ 	ret = adaptor.update("call_FR312312_Obj", map);
+ 	/*
+ 	UPDATE C31.C3CT_GENER_REGTR_CHK_PLAN 
+ 	   SET CHK_END_YN = 'Y' 
+ 		 , UPD_EMPID  = #user_id#
+ 		 , UPD_IP     = #client_id#
+ 		 , UPD_DTM    = SYSDATE
+ 	 WHERE REGTR_NUM = #regtr_num#
+ 	   AND CHK_PLAN_YM = #chk_plan_ym#
+ 	   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 	*/
+ 	if(ret <= 0)
+ 	{
+ 		rep.setCode("FR312312");
+ 		rep.setMessage("점검결과 등록에 실패했습니다.");
+ 		rep.setRet(-1);
+ 		return rep;
+ 	}
+  */
+ 
+  -> 부적합이 발생한 경우 /api/safeChk/safeChkRegtrNoGoodReg 조정기점검 부적합 등록 api호출
+  -> 정상등록 완료 후 safeChkRegtrNoGoodInfo.sendYn = 'Y'
+  /* backend 참고부분
+ 	req_item = req_items.get(i);
+ 	map = BeanToMap(req_item, map);
+ 	if (map != null)
+ 	{
+ 		rep_item = (List<FR312313_OUT_Item>) adaptor.queryForList("call_FR312313", map);
+ 		/*
+ 		SELECT REGTR_NUM
+ 			 , REGTR_NOT_PASS_ITEM  
+ 		  FROM C31.C3CT_GENER_REGTR_NOT_RSLT
+ 		 WHERE REGTR_NUM = #regtr_num#
+ 		   AND CHK_PLAN_YM = #chk_plan_ym#
+ 		   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 		   AND REGTR_NOT_PASS_FLAG = #regtr_not_pass_flag#
+ 		   AND REGTR_NOT_PASS_ITEM = #regtr_not_pass_item#
+ 		*/
+ 		if(rep_item != null )
+ 		{
+ 			if( rep_item.size() == 0)
+ 			{
+ 				retchk = adaptor.insert("call_FR312313_Insert", map);
+ 				/*
+ 				INSERT INTO C31.C3CT_GENER_REGTR_NOT_RSLT 
+ 				(
+ 					  REGTR_NUM
+ 					, CHK_PLAN_YM
+ 					, SAFE_CHK_TYPE
+ 					, REGTR_NOT_PASS_FLAG
+ 					, REGTR_NOT_PASS_ITEM
+ 					, UPD_EMPID
+ 					, UPD_IP
+ 					, CRT_EMPID
+ 					, CRT_IP
+ 					, NOT_PASS_BETTER_YMD
+ 					, CORRECTION_FLAG
+ 					, NOT_PASS_PHOTO_IMAGE_ID
+ 				)
+ 				VALUES
+ 				(
+ 					  #regtr_num#
+ 					, #chk_plan_ym#
+ 					, #safe_chk_type#
+ 					, #regtr_not_pass_flag#
+ 					, #regtr_not_pass_item#
+ 					, #user_id#
+ 					, #client_id#
+ 					, #user_id#
+ 					, #client_id#
+ 					, NVL(#not_pass_better_ymd#, ' ') 
+ 					, #correction_flag#
+ 					, 0
+ 				)
+ 				*/
+ 			}
+ 			else
+ 			{
+ 				ret = adaptor.update("call_FR312313_Update", map);
+ 				/*
+ 				UPDATE C31.C3CT_GENER_REGTR_NOT_RSLT 
+ 				   SET UPD_EMPID           = #user_id#
+ 					 , UPD_IP              = #client_id#
+ 					 , CRT_EMPID           = #user_id#
+ 					 , NOT_PASS_BETTER_YMD = NVL(#not_pass_better_ymd#, ' ') 
+ 					 , CORRECTION_FLAG     = #correction_flag#
+ 					 , UPD_DTM             = SYSDATE
+ 				 WHERE REGTR_NUM = #regtr_num#
+ 				   AND CHK_PLAN_YM = #chk_plan_ym#
+ 				   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 				   AND REGTR_NOT_PASS_FLAG = #regtr_not_pass_flag#
+ 				   AND REGTR_NOT_PASS_ITEM = #regtr_not_pass_item#
+ 				*/
+ 				//레코드가 한개도 반영되지 않은 경우.
+ 				if(ret <= 0)
+ 				{
+ 					rep.setCode( "FR312313" );
+ 					rep.setMessage( "부적합 등록에 실패했습니다." );
+ 					rep.setRet(-1);
+ 					return rep;
+ 				}
+ 			}
+ 		}
+ 		else
+ 		{
+ 			rep.setCode( "FR312313" );
+ 			rep.setMessage( "부적합 등록에 실패했습니다." );
+ 			rep.setRet(-1);
+ 			return rep;
+ 		}
+ 	}
+ 	
+  */
+ 
+  -> 부적합 사진 전송 관련 항목 셋팅
+ 	- safeChkRegtrNoGoodPhoto 객체 생성 후 항목 셋팅
+ 	- safeChkRegtrNoGoodPhoto.regtrNum			-> safeChkRegtrInfo.regtrNum
+ 	- safeChkRegtrNoGoodPhoto.chkPlanYm			-> safeChkRegtrInfo.chkPlanYm
+ 	- safeChkRegtrNoGoodPhoto.safeChkType		-> safeChkRegtrInfo.safeChkType
+ 	- safeChkRegtrNoGoodPhoto.regtrNotPassFlag	-> safeChkRegtrNoGoodInfo.regtrNotPassFlag
+ 	- safeChkRegtrNoGoodPhoto.regtrNotPassItem	-> safeChkRegtrNoGoodInfo.regtrNotPassItem
+ 	- safeChkRegtrNoGoodPhoto.photo				-> PHOTO_REGTR 사진폴더에서 사진조회 후  base62변환 셋팅
+  -> /api/safeChk/safeChkRegtrNoGoodPhotoReg 호출
+  /* backend 참고부분
+ 	SimpleDateFormat form_day = new SimpleDateFormat ( "yyyyMMdd", Locale.KOREA );
+ 	SimpleDateFormat form_time = new SimpleDateFormat ( "HHmmss", Locale.KOREA );
+ 	Date currentTime = new Date ( );
+ 	String day = form_day.format ( currentTime );
+ 	String time = form_time.format ( currentTime );
+ 	String yyyy = day.substring(0, 4);
+ 	String mm = day.substring(4, 6);
+ 	String dd = day.substring(6, 8);
+ 	
+ 	LOG.debug("REQ: " + req.toString());
+ 	
+ 	try
+ 	{
+ 		map = adaptor.BeanToMap(req, map);
+ 		
+ 		rep_item = (List<FR312313_OUT_Item>) smct.queryForList("call_FR312313", map);
+ 		/*
+ 		SELECT REGTR_NUM
+ 			 , REGTR_NOT_PASS_ITEM  
+ 		  FROM C31.C3CT_GENER_REGTR_NOT_RSLT
+ 		 WHERE REGTR_NUM = #regtr_num#
+ 		   AND CHK_PLAN_YM = #chk_plan_ym#
+ 		   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 		   AND REGTR_NOT_PASS_FLAG = #regtr_not_pass_flag#
+ 		   AND REGTR_NOT_PASS_ITEM = #regtr_not_pass_item#
+ 		*/
+ 		
+ 		if( rep_item != null)
+ 		{
+ 			if(rep_item.size() > 0   )
+ 			{
+ 		
+ 				b64sign = req.getPhoto();
+ 				byte[] bsign = Base64.decodeBase64( b64sign );
+ 				map.put("photo_b", bsign );
+ 				
+ 				file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+ 				/*
+ 				SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+ 				*/
+ 				if(file_Seqs == null)
+ 				{
+ 					rep.setCode("FR312320");
+ 					rep.setMessage("파일ID 생성 실패 했습니다.");
+ 					return rep;
+ 				}
+ 				
+ 				szfileid = file_Seqs.get(0).getSeq();
+ 				map.put( "file_id", szfileid );
+ 				map.put( "file_code", "C32" );
+ 
+ 				//szpath = /exdat03/C30/C32
+ 				szpath += File.separator+yyyy+File.separator+mm;
+ 				File path = new File(szpath);
+ 				if (!path.exists())
+ 				{
+ 					path.mkdirs();
+ 				}
+ 				map.put( "file_path", szpath );
+ 				
+ 				szfilenm = "C32R" +req.getRegtr_num()+"N"+req.getRegtr_not_pass_flag()+req.getRegtr_not_pass_item()+"D"+day+time+".jpg";
+ 				
+ 				map.put( "file_name", szfilenm );
+ 				
+ 				f = new CFile( szpath + "/" + szfilenm );
+ 				f.OpenReadWrite();
+ 				f.Write(bsign, bsign.length );
+ 				f.Close();
+ 				file_size = bsign.length;
+ 				szfilesize = String.valueOf(file_size);
+ 				 
+ 				map.put( "file_size", szfilesize );
+ 				
+ 				retchk = adaptor.insert("call_FR312317_File_Insert", map);
+ 				/*
+ 				INSERT INTO C31.C3AT_FILE_INFO_PDA
+ 				(
+ 					  FILE_ID
+ 					, FILE_NAME
+ 					, ORG_FILE_NAME
+ 					, FILE_CODE
+ 					, FILE_PATH
+ 					, FILE_SIZE
+ 					, CRT_DTM
+ 					, CRT_EMPID
+ 					, CRT_IP
+ 					, UPD_DTM
+ 					, UPD_EMPID
+ 					, UPD_IP
+ 					, PHOTO_SEND_YMD
+ 				)
+ 				VALUES
+ 				(
+ 					  #file_id#
+ 					, #file_name#
+ 					, #file_name#
+ 					, #file_code#
+ 					, #file_path#
+ 					, #file_size#
+ 					, SYSDATE
+ 					, #userid#
+ 					, #clientid#
+ 					, SYSDATE
+ 					, #userid#
+ 					, #clientid#
+ 					, TO_CHAR(SYSDATE,'yyyymmdd')
+ 				)
+ 				*/
+ 				if (ret < 0)
+ 				{
+ 					rep.setCode( "FR312320" );
+ 					rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+ 					return rep;
+ 				}
+ 				
+ 				ret = smct.update("call_FR312320_photo", map);
+ 				/*
+ 				UPDATE C31.C3CT_GENER_REGTR_NOT_RSLT 
+ 				   SET NOT_PASS_PHOTO_IMAGE_ID = #file_id#
+ 					 , UPD_DTM                 = SYSDATE
+ 				 WHERE REGTR_NUM = #regtr_num#
+ 				   AND CHK_PLAN_YM = #chk_plan_ym#
+ 				   AND SAFE_CHK_TYPE = #safe_chk_type#
+ 				   AND REGTR_NOT_PASS_FLAG = #regtr_not_pass_flag#
+ 				   AND REGTR_NOT_PASS_ITEM = #regtr_not_pass_item#
+ 				*/
+ 				//레코드가 한개도 반영되지 않은 경우.
+ 				if (ret <= 0)
+ 				{
+ 					rep.setCode( "FR312320" );
+ 					rep.setMessage( "부적합 정보 등록에 실패했습니다." );
+ 					return rep;
+ 				}
+ 				
+ 				bret = true;
+ 			}
+ 			else
+ 			{
+ 				bret = true;
+ 				rep.setCode("0000");
+ 				rep.setMessage("OK");
+ 			}
+ 		}
+ 
+  */
+  
