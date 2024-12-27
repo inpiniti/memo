@@ -204,7 +204,8 @@
 	-> 위 값을 찾기위한 조건은 safeChkBoilInfo객체에 매칭되는 항목
 		= safeChkBoilInfo.chkExecNum = safeChkData.chkExecNum, safeChkBoilInfo.mtrNum, safeChkBoilInfo.burnerNum의 앞자리가 '1', safeChkBoilInfo.burnerKindNum이 '201' 또는 '301'
   -> 종류 : 공통코드-burnerKind객체 필터링하여 콤보박스 (공통코드-burnerKind.burnerKindNum이 '201', '301'인 공통코드-burnerKind.burnerKindNm 표기 -> 선택된 값을 셋팅할때 공통코드-burnerKind.burnerKindNm에 해당하는 공통코드-burnerKind.burnerClassCd, 공통코드-burnerKind.burnerKindNum 값 셋팅필요)
-  -> 제조사명 : 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.boilerSeq로 오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
+  -> 제조사명 : 공통코드-useMaker객체 필터링하여 콤보박스 (공통코드-useMaker.makerFlag = '50'인 공통코드-useMaker.makerNm 표기 및 공통코드-useMaker.
+   오름차순 정렬 -> 선택된 값을 셋팅할때 공통코드-useMaker.makerNm 해당하는 공통코드-useMaker.makerNum 값 셋팅필요)
   -> 모델명 : safeChkBoilInfo.burnerModelNm에 값 셋팅
   -> 가스소비량 : safeChkBoilInfo.burnerCapa 값 셋팅, 단위 : safeChkBoilInfo.burnerCapaUnit에 값 셋팅 (화면코드-BOIL_CAPA 콤보박스[셋팅값:name]
   -> 제조일자 : safeChkBoilInfo..makeYmd 값 셋팅,  년 월 일 캘린더 (셋팅값 ex: 20241101)
@@ -440,76 +441,84 @@
   -> safeChkMtrInfo.prodCd값이 '11' 또는 '81'인 경우 120초 경과했는지 체크 -> 초과되지않았으면 "점검기준시간 이전에는 점검 완료 처리가 되지 않습니다. (취사전용세대 : 2분)" 메세지 출력
   -> 그외인 경우 150초 경과했는지 체크 -> 초과되지않았으면 "점검기준시간 이전에는 점검 완료 처리가 되지 않습니다. (난방세대 : 2분30초)" 메세지 출력
 
-  -> safeChkData.preuseChkWhy != '10' && safeChkData.preuseChkWhy != '30' 인 경우 부적합발생여부 체크
-	-> safeChkNoGoodDetalInfo객체에 항목이 있는지 체크 (safeChkNoGoodDetalInfo.chkExecNum = safeChkData.chkExecNum && safeChkNoGoodDetalInfo.excepPreuseChk = 'Y')
-		-> 항목이 없는 경우 부적합대상(safeChkNoGoodInfo) 객체 생성 및 차수(safeChkNoGoodChaInfo) 객체 생성 / 항목이 있는 경우 pass
-		-> safeChkNoGoodInfo객체 생성 
-		-> safeChkNoGoodInfo.chkExecNum			-> safeChkData.chkExecNum
-		-> safeChkNoGoodInfo.zipNo1				-> safeChkData.zipNo1
-		-> safeChkNoGoodInfo.zipNo2				-> safeChkData.zipNo2
-		-> safeChkNoGoodInfo.city				-> safeChkData.city
-		-> safeChkNoGoodInfo.county				-> safeChkData.county
-		-> safeChkNoGoodInfo.town				-> safeChkData.town
-		-> safeChkNoGoodInfo.village			-> safeChkData.village
-		-> safeChkNoGoodInfo.addr1M				-> safeChkData.addr1M
-		-> safeChkNoGoodInfo.addr1S				-> safeChkData.addr1S
-		-> safeChkNoGoodInfo.lotNumSecondAddr	-> safeChkData.lotNumSecondAddr
-		-> safeChkNoGoodInfo.coLiveNm			-> safeChkData.coLiveNm
-		-> safeChkNoGoodInfo.houseCnt			-> safeChkData.houseCnt
-		-> safeChkNoGoodInfo.bldNm				-> safeChkData.bldNm
-		-> safeChkNoGoodInfo.detaFloor			-> safeChkData.detaFloor
-		-> safeChkNoGoodInfo.instPlaceNum		-> safeChkData.instPlaceNum
-		-> safeChkNoGoodInfo.chkType			-> safeChkData.chkType
-		-> safeChkNoGoodInfo.chkYear			-> safeChkData.chkYear
-		-> safeChkNoGoodInfo.chkOrder			-> safeChkData.chkOrder
-		-> safeChkNoGoodInfo.objYm				-> safeChkData.objYm
-		-> safeChkNoGoodInfo.planYm				-> safeChkData.planYm
-		-> safeChkNoGoodInfo.custNum			-> safeChkData.custNum
-		-> safeChkNoGoodInfo.custNm				-> safeChkData.custNm
-		-> safeChkNoGoodInfo.custTypeCd			-> safeChkData.custTypeCd
-		-> safeChkNoGoodInfo.custTrndCd			-> safeChkData.custTrndCd
-		-> safeChkNoGoodInfo.useContNum			-> safeChkData.useContNum
-		-> safeChkNoGoodInfo.firmNm				-> safeChkData.firmNm
-		-> safeChkNoGoodInfo.bizRegiNum			-> safeChkData.bizRegiNum
-		-> safeChkNoGoodInfo.socNum				-> safeChkData.socNum
-		-> safeChkNoGoodInfo.ownhouseTelDdd		-> safeChkData.ownhouseTelDdd
-		-> safeChkNoGoodInfo.ownhouseTelExn		-> safeChkData.ownhouseTelExn
-		-> safeChkNoGoodInfo.ownhouseTelNum		-> safeChkData.ownhouseTelNum
-		-> safeChkNoGoodInfo.cpDdd				-> safeChkData.cpDdd
-		-> safeChkNoGoodInfo.cpExn				-> safeChkData.cpExn
-		-> safeChkNoGoodInfo.cpNum				-> safeChkData.cpNum
-		-> safeChkNoGoodInfo.centerCd			-> safeChkData.centerCd
-		-> safeChkNoGoodInfo.zoneManageNum		-> safeChkData.zoneManageNum
-		-> safeChkNoGoodInfo.sendYn				-> 'S'
-		-> safeChkNoGoodInfo.pdaIp				-> init-data.employeeData.equipTelNum
-		-> safeChkNoGoodInfo.updEmpid			-> init-data.employeeData.employeeId
-		-> safeChkNoGoodInfo.bldNum				-> safeChkData.bldNum
-		-> safeChkNoGoodInfo.smsSendAgreeYn		-> safeChkData.smsSendAgreeYn
-		-> safeChkNoGoodInfo.lawTown			-> safeChkData.lawTown
-		-> safeChkNoGoodInfo.newRoadNm			-> safeChkData.newRoadNm
-		-> safeChkNoGoodInfo.newAddrM			-> safeChkData.newAddrM
-		-> safeChkNoGoodInfo.newAddrS			-> safeChkData.newAddrS
+   -> safeChkData.preuseChkWhy != '10' && safeChkData.preuseChkWhy != '30' 인 경우 부적합발생여부 체크
+   if(safeChkData.preuseChkWhy != '10' && safeChkData.preuseChkWhy != '30'){
+      safeChkNoGoodDetalInfo.chkExecNum == safeChkData.chkExecNum과 동일한 부적합상세항목에서
+      (safeChkNoGoodDetalInfo.betterYn == null || safeChkNoGoodDetalInfo.betterYn == 'N') && safeChkNoGoodDetalInfo.excepPreuseChk != 'Y')인 대상이 있는 경우
+      Save_Issue() 함수호출 //safeChkNoGoodChaInfo객체 항목추가 (차수만 생성)
+      없는경우 
+      New_Nogood() 함수호출 //safeChkNoGoodInfo객체 항목추가 (부적합대상 생성)
+   }
+   
+      New_Nogood()함수 호출부분
+      -> safeChkNoGoodInfo객체 생성 
+      -> safeChkNoGoodInfo.chkExecNum         -> safeChkData.chkExecNum
+      -> safeChkNoGoodInfo.zipNo1            -> safeChkData.zipNo1
+      -> safeChkNoGoodInfo.zipNo2            -> safeChkData.zipNo2
+      -> safeChkNoGoodInfo.city            -> safeChkData.city
+      -> safeChkNoGoodInfo.county            -> safeChkData.county
+      -> safeChkNoGoodInfo.town            -> safeChkData.town
+      -> safeChkNoGoodInfo.village         -> safeChkData.village
+      -> safeChkNoGoodInfo.addr1M            -> safeChkData.addr1M
+      -> safeChkNoGoodInfo.addr1S            -> safeChkData.addr1S
+      -> safeChkNoGoodInfo.lotNumSecondAddr   -> safeChkData.lotNumSecondAddr
+      -> safeChkNoGoodInfo.coLiveNm         -> safeChkData.coLiveNm
+      -> safeChkNoGoodInfo.houseCnt         -> safeChkData.houseCnt
+      -> safeChkNoGoodInfo.bldNm            -> safeChkData.bldNm
+      -> safeChkNoGoodInfo.detaFloor         -> safeChkData.detaFloor
+      -> safeChkNoGoodInfo.instPlaceNum      -> safeChkData.instPlaceNum
+      -> safeChkNoGoodInfo.chkType         -> safeChkData.chkType
+      -> safeChkNoGoodInfo.chkYear         -> safeChkData.chkYear
+      -> safeChkNoGoodInfo.chkOrder         -> safeChkData.chkOrder
+      -> safeChkNoGoodInfo.objYm            -> safeChkData.objYm
+      -> safeChkNoGoodInfo.planYm            -> safeChkData.planYm
+      -> safeChkNoGoodInfo.custNum         -> safeChkData.custNum
+      -> safeChkNoGoodInfo.custNm            -> safeChkData.custNm
+      -> safeChkNoGoodInfo.custTypeCd         -> safeChkData.custTypeCd
+      -> safeChkNoGoodInfo.custTrndCd         -> safeChkData.custTrndCd
+      -> safeChkNoGoodInfo.useContNum         -> safeChkData.useContNum
+      -> safeChkNoGoodInfo.firmNm            -> safeChkData.firmNm
+      -> safeChkNoGoodInfo.bizRegiNum         -> safeChkData.bizRegiNum
+      -> safeChkNoGoodInfo.socNum            -> safeChkData.socNum
+      -> safeChkNoGoodInfo.ownhouseTelDdd      -> safeChkData.ownhouseTelDdd
+      -> safeChkNoGoodInfo.ownhouseTelExn      -> safeChkData.ownhouseTelExn
+      -> safeChkNoGoodInfo.ownhouseTelNum      -> safeChkData.ownhouseTelNum
+      -> safeChkNoGoodInfo.cpDdd            -> safeChkData.cpDdd
+      -> safeChkNoGoodInfo.cpExn            -> safeChkData.cpExn
+      -> safeChkNoGoodInfo.cpNum            -> safeChkData.cpNum
+      -> safeChkNoGoodInfo.centerCd         -> safeChkData.centerCd
+      -> safeChkNoGoodInfo.zoneManageNum      -> safeChkData.zoneManageNum
+      -> safeChkNoGoodInfo.sendYn            -> 'S'
+      -> safeChkNoGoodInfo.pdaIp            -> init-data.employeeData.equipTelNum
+      -> safeChkNoGoodInfo.updEmpid         -> init-data.employeeData.employeeId
+      -> safeChkNoGoodInfo.bldNum            -> safeChkData.bldNum
+      -> safeChkNoGoodInfo.smsSendAgreeYn      -> safeChkData.smsSendAgreeYn
+      -> safeChkNoGoodInfo.lawTown         -> safeChkData.lawTown
+      -> safeChkNoGoodInfo.newRoadNm         -> safeChkData.newRoadNm
+      -> safeChkNoGoodInfo.newAddrM         -> safeChkData.newAddrM
+      -> safeChkNoGoodInfo.newAddrS         -> safeChkData.newAddrS
 
-		-> safeChkNoGoodChaInfo객체 생성
-		-> safeChkNoGoodChaInfo.betterAdviceYmd		-> 오늘날짜
-		-> safeChkNoGoodChaInfo.betterAdviceExpire	-> 오늘날짜 + 30일
-		-> safeChkNoGoodChaInfo.supplyStopYmd		-> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
-		-> safeChkNoGoodChaInfo.notPermitWhy		-> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
-		-> safeChkNoGoodChaInfo.chkExecNum			-> safeChkNoGoodDetalInfo.chkExecNum
-		-> safeChkNoGoodChaInfo.betterAdviceDegree	-> safeChkNoGoodChaInfo.betterAdviceDegree+1 (처음발행시 1 셋팅)
-		-> safeChkNoGoodChaInfo.instPlaceNum		-> safeChkData.
-		-> safeChkNoGoodChaInfo.objYm				-> safeChkData.
-		-> safeChkNoGoodChaInfo.chkType				-> safeChkData.
-		-> safeChkNoGoodChaInfo.betterYn			-> 'N'
-		-> safeChkNoGoodChaInfo.betterEndYmd		-> ''
-		-> safeChkNoGoodChaInfo.preChkObjYn			-> safeChkData.preChkObjYn
-		-> safeChkNoGoodChaInfo.sendYn				-> 'S'
-		-> safeChkNoGoodChaInfo.pdaIp				-> init-data.employeeData.equipTelNum
-		-> safeChkNoGoodChaInfo.updEmpid			-> init-data.employeeData.employeeId
-		-> safeChkNoGoodChaInfo.bldNum				-> safeChkData.bldNum
-		-> safeChkNoGoodChaInfo.chkYear				-> safeChkData.chkYear
-		-> safeChkNoGoodChaInfo.chkOrder			-> safeChkData.chkOrder
-		-> safeChkNoGoodChaInfo.planYm				-> safeChkData.planYm
+      Save_Issue() 함수호출부분
+      -> safeChkNoGoodChaInfo객체 생성
+      -> safeChkNoGoodChaInfo.betterAdviceYmd      -> 오늘날짜
+      -> safeChkNoGoodChaInfo.betterAdviceExpire   -> 오늘날짜 + 30일
+      -> safeChkNoGoodChaInfo.supplyStopYmd      -> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
+      -> safeChkNoGoodChaInfo.notPermitWhy      -> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
+      -> safeChkNoGoodChaInfo.chkExecNum         -> safeChkNoGoodDetalInfo.chkExecNum
+      -> safeChkNoGoodChaInfo.betterAdviceDegree   -> safeChkNoGoodChaInfo.betterAdviceDegree+1 (처음발행시 1 셋팅)
+      -> safeChkNoGoodChaInfo.instPlaceNum      -> safeChkData.
+      -> safeChkNoGoodChaInfo.objYm            -> safeChkData.
+      -> safeChkNoGoodChaInfo.chkType            -> safeChkData.
+      -> safeChkNoGoodChaInfo.betterYn         -> 'N'
+      -> safeChkNoGoodChaInfo.betterEndYmd      -> ''
+      -> safeChkNoGoodChaInfo.preChkObjYn         -> safeChkData.preChkObjYn
+      -> safeChkNoGoodChaInfo.sendYn            -> 'S'
+      -> safeChkNoGoodChaInfo.pdaIp            -> init-data.employeeData.equipTelNum
+      -> safeChkNoGoodChaInfo.updEmpid         -> init-data.employeeData.employeeId
+      -> safeChkNoGoodChaInfo.bldNum            -> safeChkData.bldNum
+      -> safeChkNoGoodChaInfo.chkYear            -> safeChkData.chkYear
+      -> safeChkNoGoodChaInfo.chkOrder         -> safeChkData.chkOrder
+      -> safeChkNoGoodChaInfo.planYm            -> safeChkData.planYm
 
   -> safeChkData.chkYmd 	-> 오늘일자 셋팅
   -> safeChkData.chkRslt 	-> safeChkNoGoodDetalInfo객체 항목 중 safeChkData.chkExecNum = safeChkNoGoodDetalInfo.chkExecNum 매칭값 있으면 '21', 없으면 '20' 셋팅
@@ -523,6 +532,14 @@
   -> safeChkData.chkerNm		-> init-data.employeeData.nmKor
   -> safeChkData.updEmpid		-> init-data.employeeData.employeeId
   -> safeChkData.pdaIp			-> init-data.employeeData.equipTelNum
+
+	-> safeChkData.selfChkYn - 자율점검
+	-> safeChkData.advDistYn - 홍보물
+	-> safeChkData.lkBreaker - 누출 차단기
+	-> safeChkData.coSensor - CO감지기
+	-> safeChkData.pipeColorSts - 배관도색상태
+	-> safeChkData.pipeBuryYn - 배관매립여부
+	-> safeChkData.coAlarmInstYn - 배관은폐여부
 
   -> 각각 순서별로 api호출하여 처리
   -> /api/send/safeChk/safeChkRsltReg (req : safeChkData)
