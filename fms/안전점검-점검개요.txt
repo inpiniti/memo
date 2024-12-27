@@ -3,7 +3,10 @@
   -> 개선권고 : safeChkNoGoodInfo객체 항목 중 safeChkData.chkExecNum과 일치하는 항목이 있는 경우 버튼 활성화
 	-> 클릭 시 개선권고 개요 화면으로 이동
   -> 보일러사용전 : 실시간 수신으로 대체할지 검토중 (실시간 수신이 아닌 경우 일일자료수신을 통해 보일러사용전점검대상을 같이 수신)
-    -> 클릭 시 수신 후 보일러사용전점검 개요 화면으로 이동
+    -> 클릭 시 (수신 후에만 활성화) 보일러사용전점검 개요 화면으로 이동
+	
+	-> 10년 이상만 노출 : 컬럼있는지 보고
+
     -> 수신 request항목 : safeChkData.centerCd, safeChkData.mtrNum, safeChkData.singleColiveFlag
 	-> /api/receive/safechk/safeChkBefoDuty 보일러사용전점검(업무) 자료수신
 	
@@ -128,10 +131,15 @@
 		}
 
  - 사용계약번호 : safeChkData.useContNum
- - 고객카드 하단영역 : safeChkData.contStsCd(계약상태 - 화면코드: CONT_STS) | safeChkMtrInfo.mtrLocFlag(계량기위치 - 화면코드 : MTR_LOC) | safeChkData.oldBoilerYn (값이 Y인 경우만 보일러 텍스트표기) | safeChkData.chkRslt = 40 &&  safeChkData.chkExcepWhy = '82' 인 경우 거부대기 텍스트 표기
+ - 고객카드 하단영역 : 
+	safeChkData.contStsCd(계약상태 - 화면코드: CONT_STS) | 
+	safeChkMtrInfo.mtrLocFlag(계량기위치 - 화면코드 : MTR_LOC) | 
+	safeChkData.oldBoilerYn (값이 Y인 경우만 보일러 텍스트표기) | 
+	safeChkData.chkRslt = 40 &&  safeChkData.chkExcepWhy = '82' 인 경우 거부대기 텍스트 표기
  - 점검이력 : safeChkData.befoHalfChkRslt (화면코드 : SAFECHK_RSLT) | safeChkData.befoHalfChkYmd
   -> safeChkData.befoHalfChkRslt != '21' 인 경우 
-  -> safeChkData.befoHalfChkRslt = '21'인 경우  부적합 상세내역 출력 (safeChkNoGoodDetalInfo객체, safeChkData.chkExecNum과 일치하는 항목 표기/ n개 이상이면 항목별 표기 / safeChkNoGoodDetalInfo.visitDtm 최근순)
+  -> safeChkData.befoHalfChkRslt = '21'인 경우  부적합 상세내역 출력 
+  (safeChkNoGoodDetalInfo객체, safeChkData.chkExecNum과 일치하는 항목 표기/ n개 이상이면 항목별 표기 / safeChkNoGoodDetalInfo.visitDtm 최근순)
   -> 점검단위 : safeChkNoGoodDetalInfo.chkSecNm
   -> 세부항목 : safeChkNoGoodDetalInfo.notPassItemNm
   -> 연소기번호 : safeChkNoGoodDetalInfo.burnerNum
@@ -140,11 +148,13 @@
  - 방문이력 : safeChkVisitInfo객체 항목 중 safeChkData.chkExecNum과 일치하는 항목 표기 / n개 이상이면 항목별 표기 / safeChkVisitInfo.visitDegree가 큰 순서대로)
   -> safeChkVisitInfo.visitDegree(차수) | safeChkVisitInfo.noChkWhy (사유-화면코드:NOCHK_WHY) | safeChkVisitInfo.visitYmd | safeChkVisitInfo.visitorNm
   
+- 자율안전점검 (비활성화)
+ -> 개발중임
 
 
 
 
-점검개요 점검불가 버튼 기능 (누른시점에 safeChkData.chkTimeFrom 값을 현재시간으로 셋팅)
+점검개요 [점검불가] 버튼 기능 (누른시점에 safeChkData.chkTimeFrom 값을 현재시간으로 셋팅)
  - 제외 사유 : 화면코드  CHK_EXCEP_WHY
  - 미방문 사유 : 화면코드 NOCHK_WHY
 * 제외 (사유입력 후 선택완료 누른시점 / 제외등록은 점검완료와 동일하므로 점검결과를 api를 통해 저장)
@@ -683,7 +693,9 @@
 * 미방문(미점검)-(사유입력 후 선택완료 누른시점 / 미방문 등록은 방문이력 등록)
 # Validation
 1.사유 선택 후 "선택완료" 버튼 클릭
-2.사유 입력값이 (장기)부재 이면서, 계약상태(safeChkData.consafeChkDatad)가 해지(30)가 아닌 경우만 다음 프로세스 진행 / (장기)부재가 아니면 7.항목과 동일하게 noChkVisitReg() 처리하며, 문자발송은 x
+2.사유 입력값이 (장기)부재 이면서, 계약상태(safeChkData.consafeChkDatad)가 해지(30)가 아닌 경우만 다음 프로세스 진행 / 
+               (장기)부재가 아니면 7.항목과 동일하게 noChkVisitReg() 처리하며, 문자발송은 x
+			   
 3."부재 안내 문자를 보내시겠습니까? 메세지 출력 (아니오 / 예)
 4.미점검 방문 등록 함수 호출 (noChkVisitReg)
 5.미점검방문등록 함수 호출할 때 2가지 케이스 (방문차수가 3차수가 아닌 경우와 3차수인 경우)
