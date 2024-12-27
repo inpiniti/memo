@@ -18,4 +18,14 @@
 
 ### Response
 
-_Responses are not yet defined for AI 카메라._
+```json
+{
+  "result": {
+    "callback": "callback_0.5054206243440862",
+    "mtrIdNum": "111321043654",
+    "mtrIndi": "01994",
+    "resultDesc": "['111321043654/01994.874']"
+  },
+  "response": 200
+}
+```
