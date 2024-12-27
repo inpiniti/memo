@@ -21,10 +21,16 @@
 ```json
 {
   "result": {
-    "callback": "callback_0.5054206243440862",
-    "mtrIdNum": "111321043654",
-    "mtrIndi": "01994",
-    "resultDesc": "['111321043654/01994.874']"
+    "base64": "data:image/png;base64,/9j/4AAQ .... ",
+    "callback": "callback-0.9971376155748086",
+    "current": 0,
+    "includeBase64": false,
+    "meterNo": "1234567890",
+    "originBase64": "/data/user/0/com.scgs.fms/app_images/imagesCrop/image_1735262821254.jpg",
+    "originPath": "/data/user/0/com.scgs.fms/app_images/imagesCrop/image_1735262821254.jpg",
+    "replacementIndicatorValue": "01994",
+    "responseMeterNo": "111321043654",
+    "type": "meter"
   },
   "response": 200
 }
