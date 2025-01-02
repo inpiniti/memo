@@ -301,7 +301,7 @@
  - 전경 : PHOTO_SAFECHK_PANORAMA폴더에 
 
  - 점검항목
-  -> 플러그 마감 : (화면코드:SAFECHK_GASCHK / 버튼셋팅)
+  -> 플러그 마감 : (화면코드:SAFECHK_GASCHK / 버튼셋팅) 
   -> 휴즈콕 :  (화면코드:SAFECHK_MTRFUSE / 버튼셋팅)
   -> 가스 타이머 : (화면코드:TIMER_COCK / 버튼셋팅)
   -> 주방 자동 소화장치 : (화면코드:SAFECHK_KITAUTOSPRIN / 버튼셋팅)
