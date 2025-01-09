@@ -1,0 +1,576 @@
+1.계량기점검
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_MTR
+ - 점검목록에서 이미 사진촬영이 되어있는 경우도 있음
+ - /api/send/safeChk/photoMtrReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, instPlaceNum, photo
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C37
+ - 업로드파일명셋팅 : - C37E점검시행번호M계량기번호I설치장소번호D오늘일시.JPG
+
+2. 연소기점검 (전경,마감사진)
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_BUR
+ - /api/send/safeChk/photoBurReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, instPlaceNum, photo, inflowFlag(10), flagItem(전경:10, 마감:20), burnerNum
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C39
+ - 업로드파일명셋팅 : - C39E점검시행번호M계량기번호I설치장소번호D오늘일시.JPG
+
+ 3. 보일러점검
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_BOIL
+ - /api/send/safeChk/photoBoilReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, instPlaceNum, photo, inflowFlag(20), flagItem(10), burnerNum
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C40
+ - 업로드파일명셋팅 : - C40E점검시행번호M계량기번호I설치장소번호D오늘일시.JPG
+
+4. 부적합
+ - gubun(1:부적합, 2:개선), chkExecNum, mtrNum, burnerNum, chkSecCd, notPassItemCd, photo
+ - PHOTO_SAFECHK_NOGOOD
+ - /api/send/safeChk/photoNogoodReg
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C32
+
+------------------
+
+1.계량기점검
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_MTR
+ - 점검목록에서 이미 사진촬영이 되어있는 경우도 있음
+ - /api/send/safeChk/photoMtrReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, intPlaceNum, photo
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C37 (/exdat03/C30/C37/년/월/일)
+ - 파일형식 : C37(업무구분) | E(점검시행번호) | M(계량기번호) | I(설치장소번호) | D(생성날짜(SYSDATE : YYYYMMDDHHMMSS))
+    b64sign = req.getPhoto();
+    byte[] bsign = Base64.decodeBase64( b64sign );
+    map.put("photo", bsign );
+
+    file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+    /*
+        SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+    */
+    if(file_Seqs == null)
+    {
+        rep.setCode("FR312323");
+        rep.setMessage("파일ID 생성 실패 했습니다.");
+        return rep;
+    }
+    szfileid = file_Seqs.get(0).getSeq();
+
+    map.put( "file_id", szfileid );
+    map.put( "file_code", "C37" );
+
+    szpath += File.separator+yyyy+File.separator+mm+File.separator+dd;
+    File path = new File(szpath);
+    if (!path.exists())
+    {
+        path.mkdirs();
+    }
+
+    map.put( "file_path", szpath );
+
+    szfilenm = "C37"+"E"+req.getChk_exec_num()+"M"+req.getMtr_num()+"I"+req.getInst_place_num()+"D"+day+time+".jpg";
+
+    map.put( "file_name", szfilenm );
+
+    f = new CFile( szpath + "/" + szfilenm );
+    f.OpenReadWrite();
+    f.Write(bsign, bsign.length );
+    f.Close();
+    file_size = bsign.length;
+    szfilesize = String.valueOf(file_size);
+        
+    map.put( "file_size", szfilesize );
+    map.put( "chk_exec_num", req.getChk_exec_num() );
+    map.put( "mtr_num", req.getMtr_num() );
+
+    //파일 insert
+    retchk = adaptor.insert("call_FR312317_File_Insert", map);
+    /*
+    		INSERT INTO C31.C3AT_FILE_INFO_PDA
+			(
+				  FILE_ID
+				, FILE_NAME
+				, ORG_FILE_NAME
+				, FILE_CODE
+				, FILE_PATH
+				, FILE_SIZE
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, PHOTO_SEND_YMD
+			)
+			VALUES
+			(
+			      #file_id#
+				, #file_name#
+				, #file_name#
+				, #file_code#
+				, #file_path#
+				, #file_size#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, TO_CHAR(SYSDATE,'yyyymmdd')
+			)
+    */
+
+    //계량기테이블 file_id update
+    ret = smct.update("call_FR312323", map);
+    /*
+        UPDATE C31.C3CT_GENER_INDI
+            SET INSIDE_MTR_PHOTO_ID = #file_id#
+            WHERE CHK_EXEC_NUM = #chk_exec_num# 
+            AND MTR_NUM = #mtr_num#
+    */
+    if (ret < 0)
+    {
+        rep.setCode( "FR312323" );
+        rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+        return rep;
+    }
+
+    bret = true;
+
+2. 연소기점검 (전경,마감사진)
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_BUR
+ - /api/send/safeChk/photoBurReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, intPlaceNum, burnerNum, photo, inflowFlag(10), flagItem(전경:10, 마감:20)
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C39 (/exdat03/C30/C39/년/월/일)
+ - 파일형식 : C39(업무구분) | E(점검시행번호) | M(계량기번호) | I(설치장소번호) | D(생성날짜(SYSDATE : YYYYMMDDHHMMSS))
+    map = adaptor.BeanToMap(req, map);
+    b64sign = req.getPhoto();
+    byte[] bsign = Base64.decodeBase64( b64sign );
+    map.put("photo", bsign );
+
+    file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+    /*
+        SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+    */
+    if(file_Seqs == null)
+    {
+        rep.setCode("FR312324");
+        rep.setMessage("파일ID 생성 실패 했습니다.");
+        return rep;
+    }
+    szfileid = file_Seqs.get(0).getSeq();
+
+    map.put( "file_id", szfileid );
+    map.put( "file_code", "C39" );
+
+    szpath += File.separator+yyyy+File.separator+mm+File.separator+dd;
+    File path = new File(szpath);
+    if (!path.exists())
+    {
+        path.mkdirs();
+    }
+
+    map.put( "file_path", szpath );
+
+    szfilenm = "C39"+"E"+req.getChk_exec_num()+"M"+req.getMtr_num()+"I"+req.getInst_place_num()+"D"+day+time+".jpg";
+
+    map.put( "file_name", szfilenm );
+
+    f = new CFile( szpath + "/" + szfilenm );
+    f.OpenReadWrite();
+    f.Write(bsign, bsign.length );
+    f.Close();
+    file_size = bsign.length;
+    szfilesize = String.valueOf(file_size);
+        
+    map.put( "file_size", szfilesize );
+    map.put( "chk_exec_num", req.getChk_exec_num() );
+    map.put( "mtr_num", req.getMtr_num() );
+    map.put( "user_id", req.getUserid() );
+    map.put( "client_id", req.getClientid() );
+
+    //파일 insert
+    retchk = adaptor.insert("call_FR312317_File_Insert", map);
+    /*
+        	INSERT INTO C31.C3AT_FILE_INFO_PDA
+			(
+				  FILE_ID
+				, FILE_NAME
+				, ORG_FILE_NAME
+				, FILE_CODE
+				, FILE_PATH
+				, FILE_SIZE
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, PHOTO_SEND_YMD
+			)
+			VALUES
+			(
+			      #file_id#
+				, #file_name#
+				, #file_name#
+				, #file_code#
+				, #file_path#
+				, #file_size#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, SYSDATE
+				, #userid#
+				, #clientid#
+				, TO_CHAR(SYSDATE,'yyyymmdd')
+			)
+    */
+
+    //C31.C3CT_PHOTO_MANAGE INSERT
+    retchk = adaptor.insert("call_FR312324_Insert", map);
+    /*
+    		INSERT INTO C31.C3CT_PHOTO_MANAGE
+			(
+				  CHK_EXEC_NUM
+				, INFLOW_FLAG
+				, FLAG_ITEM
+				, SEQ
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, CHK_YEAR
+				, CHK_ORDER
+				, CHK_TYPE
+				, MTR_NUM
+				, BURNER_NUM
+				, INST_PLACE_NUM
+				, BLD_NUM
+				, SPECIAL_NUM
+				, SPECIAL_FACI_FLAG
+				, SPECIAL_FACI_NUM
+				, FILE_ID 
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #inflow_flag#
+				, #flag_item#			
+				, ( SELECT NVL(MAX(SEQ), 0) + 1 
+					  FROM C31.C3CT_PHOTO_MANAGE
+					 WHERE CHK_EXEC_NUM = #chk_exec_num#
+					   AND INFLOW_FLAG = #inflow_flag#
+					   AND FLAG_ITEM = #flag_item# )
+				, SYSDATE
+				, #user_id#
+				, #client_id#
+				, SYSDATE
+				, #user_id#
+				, #client_id#
+				, #chk_year#
+				, #chk_order#
+				, #chk_type#
+				, #mtr_num#
+				, #burner_num#
+				, #inst_place_num#
+				, #bld_num#
+				, #special_num#
+				, #special_faci_flag#
+				, #special_faci_num#
+				, #file_id#
+			)
+    */
+
+    bret = true;
+
+ 3. 보일러점검
+ - 파일명 셋팅 : E(safeChkData.chkExecNum)_(safeChkMtrInfo.mtrNum)_(safeChkMtrInfo.instPlaceNum)
+ - 파일저장경로 : PHOTO_SAFECHK_BOIL
+ - /api/send/safeChk/photoBoilReg
+ - param : employeeId, equipTelNum, centerCd, chkExecNum, mtrNum, intPlaceNum, burnerNum, photo, inflowFlag(20), flagItem(10)
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C40 (/exdat03/C30/C40/년/월/일)
+ - 파일셋팅 : C40(업무구분) | E(점검시행번호) | M(계량기번호) | I(설치장소번호) | B(연소기번호) | D(생성날짜(SYSDATE : YYYYMMDDHHMMSS))
+    map = adaptor.BeanToMap(req, map);	
+    b64sign = req.getPhoto();
+    byte[] bsign = Base64.decodeBase64( b64sign );
+    map.put("photo", bsign );
+
+    file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+    /*
+        SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+    */
+
+    if(file_Seqs == null)
+    {
+        rep.setCode("FR312325");
+        rep.setMessage("파일ID 생성 실패 했습니다.");
+        return rep;
+    }
+
+    szfileid = file_Seqs.get(0).getSeq();
+
+    map.put( "file_id", szfileid );
+    map.put( "file_code", req.getFlag().toString() );
+
+    szpath += req.getFlag().toString() + File.separator + yyyy + File.separator + mm + File.separator + dd;
+    File path = new File(szpath);
+    if (!path.exists())
+    {
+        path.mkdirs();
+    }
+
+    map.put( "file_path", szpath );
+
+    szfilenm = req.getFlag().toString() + "E" + req.getChk_exec_num() + "M" + req.getMtr_num() + "I" + req.getInst_place_num() + "D" + day + time + ".jpg";
+
+    map.put( "file_name", szfilenm );
+
+    f = new CFile( szpath + "/" + szfilenm );
+    f.OpenReadWrite();
+    f.Write(bsign, bsign.length );
+    f.Close();
+    file_size = bsign.length;
+    szfilesize = String.valueOf(file_size);
+        
+    map.put( "file_size", szfilesize );
+    map.put( "chk_exec_num", req.getChk_exec_num() );
+    map.put( "mtr_num", req.getMtr_num() );
+    map.put( "user_id", req.getUserid() );
+    map.put( "client_id", req.getClientid() );
+
+    //파일 insert
+    retchk = adaptor.insert("call_FR312317_File_Insert", map);
+    /*
+        INSERT INTO C31.C3AT_FILE_INFO_PDA
+        (
+              FILE_ID
+            , FILE_NAME
+            , ORG_FILE_NAME
+            , FILE_CODE
+            , FILE_PATH
+            , FILE_SIZE
+            , CRT_DTM
+            , CRT_EMPID
+            , CRT_IP
+            , UPD_DTM
+            , UPD_EMPID
+            , UPD_IP
+            , PHOTO_SEND_YMD
+        )
+        VALUES
+        (
+              #file_id#
+            , #file_name#
+            , #file_name#
+            , #file_code#
+            , #file_path#
+            , #file_size#
+            , SYSDATE
+            , #userid#
+            , #clientid#
+            , SYSDATE
+            , #userid#
+            , #clientid#
+            , TO_CHAR(SYSDATE,'yyyymmdd')
+        )
+    */
+
+    //C31.C3CT_PHOTO_MANAGE INSERT
+    retchk = adaptor.insert("call_FR312324_Insert", map);
+    /*
+    		INSERT INTO C31.C3CT_PHOTO_MANAGE
+			(
+				  CHK_EXEC_NUM
+				, INFLOW_FLAG
+				, FLAG_ITEM
+				, SEQ
+				, UPD_DTM
+				, UPD_EMPID
+				, UPD_IP
+				, CRT_DTM
+				, CRT_EMPID
+				, CRT_IP
+				, CHK_YEAR
+				, CHK_ORDER
+				, CHK_TYPE
+				, MTR_NUM
+				, BURNER_NUM
+				, INST_PLACE_NUM
+				, BLD_NUM
+				, SPECIAL_NUM
+				, SPECIAL_FACI_FLAG
+				, SPECIAL_FACI_NUM
+				, FILE_ID 
+			)
+			VALUES
+			(
+				  #chk_exec_num#
+				, #inflow_flag#
+				, #flag_item#			
+				, ( SELECT NVL(MAX(SEQ), 0) + 1 
+					  FROM C31.C3CT_PHOTO_MANAGE
+					 WHERE CHK_EXEC_NUM = #chk_exec_num#
+					   AND INFLOW_FLAG = #inflow_flag#
+					   AND FLAG_ITEM = #flag_item# )
+				, SYSDATE
+				, #user_id#
+				, #client_id#
+				, SYSDATE
+				, #user_id#
+				, #client_id#
+				, #chk_year#
+				, #chk_order#
+				, #chk_type#
+				, #mtr_num#
+				, #burner_num#
+				, #inst_place_num#
+				, #bld_num#
+				, #special_num#
+				, #special_faci_flag#
+				, #special_faci_num#
+				, #file_id#
+			)
+    */
+
+    bret = true;
+
+4. 부적합
+ - 파일명 : 1_safeChkNoGoodDetalInfo.chkExecNum_safeChkMtrInfo.mtrNum(null=000000000)safeChkBoilInfo.burnerNum(null=000000000)_safeChkNoGoodDetalInfo.chkSecCd_부적합항목코드(notPassItemCd)
+ - 폴더명 : PHOTO_SAFECHK_NOGOOD
+ - param : gubun(1:부적합, 2:개선), chkExecNum, mtrNum, burnerNum, chkSecCd, notPassItemCd, photo
+ - /api/send/safeChk/photoNogoodReg
+ - 이미지는 photo항목에 셋팅
+ - 업로드경로 : /exdat03/C30/C32 (/exdat03/C30/C32/년/월)
+ - 파일형식 : C31(업무구분) | E(점검시행번호) | M(계량기번호) | B(연소기 번호) | N(부적합), B(개선) | 점검부분코드 | 부적합항목코드 | D(생성날짜(SYSDATE : YYYYMMDDHHMMSS))
+    b64sign = req.getPhoto();
+    byte[] bsign = Base64.decodeBase64( b64sign );
+    map.put("photo", bsign );
+
+    file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+    /*
+        SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+    */
+    if(file_Seqs == null)
+    {
+        rep.setCode("FR312317");
+        rep.setMessage("파일ID 생성 실패 했습니다.");
+        return rep;
+    }
+
+    szfileid = file_Seqs.get(0).getSeq();
+    map.put( "file_id", szfileid );
+    map.put( "file_code", "C32" );
+
+    szpath += File.separator+yyyy+File.separator+mm;
+    File path = new File(szpath);
+    if (!path.exists())
+    {
+        path.mkdirs();
+    }
+
+    map.put( "file_path", szpath );
+
+    if( req.getGubun().equals("1")  )
+        szfilenm = "C32E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"N"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+    else
+        szfilenm = "C32E" +req.getChk_exec_num()+"M"+req.getMtr_num()+"B"+req.getBurner_num()+"B"+req.getChk_sec_cd()+req.getNot_pass_item_cd()+"D"+day+time+".jpg";
+
+    map.put( "file_name", szfilenm );
+
+    f = new CFile( szpath + "/" + szfilenm );
+    f.OpenReadWrite();
+    f.Write(bsign, bsign.length );
+    f.Close();
+    file_size = bsign.length;
+    szfilesize = String.valueOf(file_size);
+        
+    map.put( "file_size", szfilesize );
+
+    retchk = adaptor.insert("call_FR312317_File_Insert", map);
+    /*
+        INSERT INTO C31.C3AT_FILE_INFO_PDA
+        (
+              FILE_ID
+            , FILE_NAME
+            , ORG_FILE_NAME
+            , FILE_CODE
+            , FILE_PATH
+            , FILE_SIZE
+            , CRT_DTM
+            , CRT_EMPID
+            , CRT_IP
+            , UPD_DTM
+            , UPD_EMPID
+            , UPD_IP
+            , PHOTO_SEND_YMD
+        )
+        VALUES
+        (
+              #file_id#
+            , #file_name#
+            , #file_name#
+            , #file_code#
+            , #file_path#
+            , #file_size#
+            , SYSDATE
+            , #userid#
+            , #clientid#
+            , SYSDATE
+            , #userid#
+            , #clientid#
+            , TO_CHAR(SYSDATE,'yyyymmdd')
+        )
+    */
+    
+
+    if( req.getGubun().equals("1")  )
+    {
+        ret = smct.update("call_FR312317_photo", map);
+        /*
+        	UPDATE C31.C3CT_GENER_NOT_PASS  
+			   SET PHOTO_ID = #file_id#
+			     , UPD_DTM  = SYSDATE 
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+        */
+        if (ret < 0)
+        {
+            rep.setCode( "FR312317" );
+            rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+            return rep;
+        }
+    }
+    else
+    {
+        ret = smct.update("call_FR312317_Bphoto", map);
+        /*
+        	UPDATE C31.C3CT_GENER_NOT_PASS 
+			   SET BETTER_PHOTO_ID = #file_id#
+			     , UPD_DTM         = SYSDATE
+			 WHERE CHK_EXEC_NUM = #chk_exec_num#
+			   AND MTR_NUM = #mtr_num#
+			   AND BURNER_NUM = #burner_num#
+			   AND CHK_SEC_CD = #chk_sec_cd#
+			   AND NOT_PASS_ITEM_CD = #not_pass_item_cd#
+        */
+        //레코드가 한개도 반영되지 않은 경우.
+        if (ret < 0)
+        {
+            rep.setCode( "FR312317" );
+            rep.setMessage( "부적합 상세 등록에 실패했습니다." );
+            return rep;
+        }
+    }
+    bret = true;

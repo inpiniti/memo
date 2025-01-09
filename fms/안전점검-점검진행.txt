@@ -449,6 +449,15 @@
       없는경우 
       New_Nogood() 함수호출 //safeChkNoGoodInfo객체 항목추가 (부적합대상 생성)
    }
+
+	if(safeChkData.preuseChkWhy != '10' && safeChkData.preuseChkWhy != '30'){
+		if(safeChkNoGoodDetalInfo객체 row가 1개이상인 경우){
+				if(safeChkNoGoodDetalInfo객체에 excepPreuseChk == 'Y'인 row가 없으면){
+					New_Nogood();
+					Save_Issue();
+				}
+			}
+	}
    
       New_Nogood()함수 호출부분
       -> safeChkNoGoodInfo객체 생성 
@@ -505,7 +514,7 @@
       -> safeChkNoGoodChaInfo.supplyStopYmd      -> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
       -> safeChkNoGoodChaInfo.notPermitWhy      -> safeChkNoGoodChaInfo.betterAdviceDegree가 3차수인 경우 입력
       -> safeChkNoGoodChaInfo.chkExecNum         -> safeChkNoGoodDetalInfo.chkExecNum
-      -> safeChkNoGoodChaInfo.betterAdviceDegree   -> safeChkNoGoodChaInfo.betterAdviceDegree+1 (처음발행시 1 셋팅)
+      -> safeChkNoGoodChaInfo.betterAdviceDegree   -> safeChkNoGoodChaInfo.betterAdviceDegree+1 (처음발행시 01 셋팅)
       -> safeChkNoGoodChaInfo.instPlaceNum      -> safeChkData.
       -> safeChkNoGoodChaInfo.objYm            -> safeChkData.
       -> safeChkNoGoodChaInfo.chkType            -> safeChkData.

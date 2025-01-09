@@ -1,0 +1,10 @@
+```js
+<InputText
+  value={props.value}
+  placeholder={props.placeholder}
+  disabled={props.disabled}
+  keyfilter="num"
+  maxLength={4}
+  onChange={onChangeHandler}
+/>
+```
