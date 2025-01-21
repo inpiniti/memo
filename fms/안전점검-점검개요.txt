@@ -1,3 +1,19 @@
+safeChkRegtrInfo.bldnum (조정기 - 1동에 대한 거임)
+safeChkRegtrInfo.chkEndYn (조정기 점검 완료 여부임)
+safeChkData.bldnum 일치 확인해야 함
+
+조정기 한 대상인지도 확인을 해야 함 ()
+
+
+조정기는 일반 점검 처럼 1:다 가 아님.
+1동 조정기가 1 or 여러개일수 있음
+
+
+
+단독
+
+
+
 점검개요 표시항목
 1.상단버튼 
   -> 개선권고 : safeChkNoGoodInfo객체 항목 중 safeChkData.chkExecNum과 일치하는 항목이 있는 경우 버튼 활성화

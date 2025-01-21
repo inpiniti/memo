@@ -1,0 +1,21 @@
+<CheckItem />
+
+<ToggleBtnCamera
+    value={isItem}
+    onBase64={(base64) => {
+    putNoGoodPhoto({
+        base64,
+        cd: install.code,
+    })
+    }}
+    onClick={() => {
+    toggleNoGood({
+        cd: install.code,
+        nm: install.name,
+    })
+    }}
+    isPhoto={isPhoto}
+/>
+
+- noGoodDetal 추가 (개선권고에서는 변경)
+- noGoodPhoto 추가

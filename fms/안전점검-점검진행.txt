@@ -104,7 +104,8 @@
   -> safeChkNoGoodDetalInfo.pdaIp			-> init-data.employeeData.equipTelNum
   -> safeChkNoGoodDetalInfo.updEmpId		-> init-data.employeeData.employeeId
   -> safeChkNoGoodDetalInfo.excepPreuseChk	-> 'N'
-
+  pipeBuryHideFlag -> 무슨값을넣어라.
+ 
   -> 모든 부적합항목은 /api/send/safeChk/
 
  - 위 처리된 부적합을 다시 적합으로 돌릴 시 해당 항목 delete

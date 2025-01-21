@@ -1,0 +1,75 @@
+{
+  "SAFETY_CHECK" : {
+    "safeChkData" : {
+      "sendYn" : {
+        "N" : 30,
+        "Y" : 0,
+        "S" : 0
+      }
+    },
+    "safeChkNoGoodInfo" : {
+      "sendYn" : {
+        "N" : 21,
+        "Y" : 0,
+        "S" : 0
+      }
+    }
+  },
+  "SAFETY_CHECK_BOILER" : {
+    "safeChkBefoData" : {
+      "sendYn" : {
+        "N" : 4,
+        "Y" : 0,
+        "S" : 0
+      }
+    }
+  },
+  "SAFETY_CHECK_SPECIAL" : {
+    "specailChkData" : {
+      "sendYn" : {
+        "N" : 1,
+        "Y" : 0,
+        "S" : 0
+      }
+    },
+    "specailChkNoGoodInfo" : {
+      "sendYn" : {
+        "N" : 1,
+        "Y" : 0,
+        "S" : 0
+      }
+    }
+  }
+}
+
+----------------------
+
+{"METER_READING":{
+"safeChkData":{
+"sendYn":{"N":8,"Y":1,"S":1}
+},
+"safeChkNoGoodInfo":{
+"sendYn":{"N":23,"Y":0,"S":0}}},
+"chkRslt":{"20":2}}
+
+----------------------
+
+{
+  "result" : {
+    "METER_READING" : {
+      "meterReadingData" : {
+        "sendYn" : {
+          "N" : 1861,
+          "Y" : 1,
+          "S" : 2
+        }
+      }
+    },
+    "mtrWorkCode" : { }
+  },
+  "response" : 200
+}
+
+
+safe
+dutyFlag

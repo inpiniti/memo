@@ -1,0 +1,15 @@
+safeChkData.chkRslt == 20 || 21 (적합,부적합) - 점검완료건
+ -> 점검시작 버튼 -> 점검완료 텍스트 변경 및 빨간색변경 -> 누르면 "이미 점검완료된 대상입니다." alert / 점검불가 버튼 비활성화
+
+safeChkData.chkRslt == 40 (점검제외)
+ -> 점검시작 enable false (비활성) / 점검불가 버튼 백그라운드 색상 빨간색표기
+
+safeChkData.chkRslt == 99 
+ -> 점검시작 버튼 enable true (활성) 점검불가버튼 enable false (비활성)
+
+
+
+
+점검불가(점검제외) 처리 후 화면이동 관련
+ - safeChkData.chkRslt == 99 || safeChkData.chkExcepWhy == 14인 경우는 다음세대 이동이 아닌 현재 화면 유지
+ - 그외인경우는 다음세대 점검개요화면 이동

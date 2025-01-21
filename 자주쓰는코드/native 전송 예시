@@ -1,0 +1,6 @@
+uniqId: args?.[0]?.chkExecNum, // 점검 실행 번호
+      dutyFlag: 'SAFETY_CHECK',
+      workFlag: 'send_upsert',
+      url: 'api/send/safeChk/safeChkRsltMtrReg',
+      params: args,
+      obj: 'safeChkMtrInfo',

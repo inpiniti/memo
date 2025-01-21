@@ -1,0 +1,118 @@
+safeChkRsltNoGoodReg : 안전점검 부적합 대상 송신
+    {
+        "code": 500,
+        "type": "RELAY",
+        "message": "알 수 없는 오류가 발생했습니다."
+    }
+    
+    swagger-ui 에서 빠진 필드
+        "village" : (수신 받을때 부터 null 인 경우가 존재)
+        "coLiveNm" : (수신 받을때 부터 null 인 경우가 존재)
+        "newAddrHosu" (어떤값을 넣어야 할지?)
+        "newAddrUndergroundYn" (어떤값을 넣어야 할지?)
+        "newAddrUnion" (어떤값을 넣어야 할지?)
+        "ownhouseTelDdd" : (수신 받을때 부터 null 인 경우가 존재)
+        "ownhouseTelExn" : (수신 받을때 부터 null 인 경우가 존재)
+        "ownhouseTelNum" : (수신 받을때 부터 null 인 경우가 존재)
+
+---
+
+safeChkRsltMtrReg : 안전점검 부재 송신
+    {
+        "code": 500,
+        "type": "RELAY",
+        "message": "\n### Error updating database.  Cause: java.sql.SQLDataException: ORA-01843: 지정한 월이 부적합합니다.\n\nhttps://docs.oracle.com/error-help/db/ora-01843/\n### The error may exist in class path resource [mappers/ora/safeCheck.xml]\n### The error may involve newFMS.safecheck.dao.SafeCheckDao.updateSafeChkRsltMtrReg-Inline\n### The error occurred while setting parameters\n### SQL: UPDATE C31.C3CT_GENER_INDI         SET UPD_EMPID          = ?           , UPD_IP             = ?           , UPD_DTM            = SYSDATE           , BLD_NUM            = ?           , INST_PLACE_NUM     = ?           , CHK_TYPE           = ?           , CHK_YEAR           = ?           , CHK_ORDER          = ?           , OBJ_YM             = TO_CHAR(SYSDATE, 'yyyymm')           , PLAN_YM            = ?           , VISIT_DTM          = TO_DATE(?, 'YYYYMMDDHH24MISS')           , MTR_INDI           = NVL(?, 0)           , INDI_VA            = NVL(?, 0)           , INDI_VC            = NVL(?, 0)           , COMPENS_YN         = ?           , PROD_CD            = ?           , MTR_LOC_FLAG       = ?           , SEALED_STS         = ?           , FUSE_COCK_INST_YN  = ?           , TIMER_COCK_INST_YN = ?           , RCV_PROD_CD        = ?           , RSLT_REFLE_YN      = 'N'         WHERE CHK_EXEC_NUM = ?           AND MTR_NUM = ?\n### Cause: java.sql.SQLDataException: ORA-01843: 지정한 월이 부적합합니다.\n\nhttps://docs.oracle.com/error-help/db/ora-01843/\n; ORA-01843: 지정한 월이 부적합합니다.\n\nhttps://docs.oracle.com/error-help/db/ora-01843/"
+    }
+
+    빠진 필드가 없음
+
+    payload = [
+        {
+            "chkExecNum": "58959700",
+            "uniqId": "58959700",
+            "mtrNum": "301281120",
+            "prodCd": "12",
+            "prodNm": "주택용 취,난방 겸용",
+            "mtrIdNum": "233321024852",
+            "mtrSupplySts": "10",
+            "mtrModelCd": "10426",
+            "mtrModelNm": "DSG-G2.5L",
+            "mtrLocFlag": "20",
+            "mtrGrd": "4",
+            "mtrValidYm": "202811",
+            "sealedSts": "  ",
+            "mtrIndi": "0",
+            "indiVa": "0",
+            "indiVc": "596",
+            "compensYn": "N",
+            "mtrDetaLoc": " ",
+            "makerNm": "대성계전",
+            "fuseCockInstYn": "Y",
+            "visitDtm": "201281120",
+            "mtrIndiCur": "0",
+            "indiVaCur": "0",
+            "indiVcCur": "12345",
+            "sendYn": "202409",
+            "mtrRslt": "202407",
+            "pipeRslt": "  ",
+            "chkRslt": "막식",
+            "pdaIp": "596",
+            "updEmpid": "0",
+            "bldNum": "400223907",
+            "instPlaceNum": "201281120",
+            "chkType": "11",
+            "chkYear": "2024",
+            "chkOrder": "70",
+            "objYm": "202409",
+            "planYm": "202407",
+            "mtrFormNm": "막식",
+            "addr1M": "236",
+            "addr1S": "5",
+            "coLiveNm": "N",
+            "houseCnt": " ",
+            "bldNm": " ",
+            "etcAddr": "1층좌",
+            "timerCockInstYn": "N",
+            "insideMtrPhotoId": null,
+            "rcvProdCd": "12",
+            "remoteMtrYn": "N",
+            "employeeId": "200710006",
+            "equipTelNum": "01030975223"
+        }
+    ]
+
+---
+
+safeChkRsltNoGoodDetalReg : 안전점검 부적합 항목 송신
+    {
+        "code": 500,
+        "type": "RELAY",
+        "message": "\n### Error updating database.  Cause: java.sql.SQLIntegrityConstraintViolationException: ORA-01400: NULL을 (\"C31\".\"C3CT_GENER_NOT_PASS\".\"BURNER_NUM\") 안에 삽입할 수 없습니다\n\nhttps://docs.oracle.com/error-help/db/ora-01400/\n### The error may exist in class path resource [mappers/ora/safeCheck.xml]\n### The error may involve newFMS.safecheck.dao.SafeCheckDao.insertSafeChkNoGoodRsltReg-Inline\n### The error occurred while setting parameters\n### SQL: INSERT INTO C31.C3CT_GENER_NOT_PASS         ( CHK_EXEC_NUM         , BETTER_DEGREE         , CHK_SEC_CD         , MTR_NUM         , BURNER_NUM         , NOT_PASS_ITEM_CD         , UPD_EMPID         , UPD_IP         , CRT_EMPID         , CRT_IP         , BLD_NUM         , INST_PLACE_NUM         , CHK_TYPE         , CHK_YEAR         , CHK_ORDER         , OBJ_YM         , PLAN_YM         , CHK_SEC_NM         , NOT_PASS_ITEM_NM         , MTR_ID_NUM         , VISIT_DTM         , BETTER_PLAN_YMD         , BETTER_YN         , BETTER_END_YMD         , BETTER_CONF_EMPID         , BETTER_CONF_NM         , PHOTO_ID         , BETTER_PHOTO_ID)         VALUES ( ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , ?                , TO_CHAR(SYSDATE, 'yyyymm')                , ?                , ?                , ?                , ?                , TO_DATE(?, 'YYYYMMDDHH24MISS')                , ?                , ?                , ?                , ?                , ?                , 0                , 0)\n### Cause: java.sql.SQLIntegrityConstraintViolationException: ORA-01400: NULL을 (\"C31\".\"C3CT_GENER_NOT_PASS\".\"BURNER_NUM\") 안에 삽입할 수 없습니다\n\nhttps://docs.oracle.com/error-help/db/ora-01400/\n; ORA-01400: NULL을 (\"C31\".\"C3CT_GENER_NOT_PASS\".\"BURNER_NUM\") 안에 삽입할 수 없습니다\n\nhttps://docs.oracle.com/error-help/db/ora-01400/"
+    }
+
+    swagger-ui 에서 빠진 필드
+    "burnerNum" (연소기, 보일러 부적합 항목 경우만 추가 가능)
+
+---
+
+safeChkRsltBuryPipeReg : 안전점검 은폐매립배관 점검 항목 송신
+    {
+        "code": 500,
+        "type": "RELAY",
+        "message": "알 수 없는 오류가 발생했습니다."
+    }
+
+    swagger-ui 에서 빠진 필드
+    "pipeBuryHideFlag" (어떤값을 넣어야 할지?)
+
+---
+
+photoNogoodReg : 부적합사진 등록
+    {
+        "code": 500,
+        "type": "RELAY",
+        "message": "파일 업로드에 실패하였습니다."
+    }
+    swagger-ui 에서 빠진 필드
+    "burnerNum" (연소기, 보일러 부적합 사진의 경우만 추가 가능)
+
