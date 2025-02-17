@@ -327,8 +327,11 @@
   -> safeChkNoGoodDetalInfo.burnerNum	-> safeChkBoilInfo.burnerNum
   -> safeChkNoGoodDetalInfo.chkSecNm	-> '연소기'
 
- - 부적합 버튼 클릭 가능여부
-  -> 부적합 우선점검(safeChkData.preuseChkWhy = 10) && safeChkData.preChkObjYn = Y가 아니면 체크가능 || 부적합 우선점검 혹은 확인점검이 아닌경우 체크가능 ) && 개선권고항목이 아니면 체크가능
+ - 부적합 버튼 클릭 가능여부 
+  -> 부적합 우선점검(safeChkData.preuseChkWhy = 10) && 
+  safeChkData.preChkObjYn = Y가 아니면 체크가능 || 
+  부적합 우선점검 혹은 확인점검이 아닌경우 체크가능 ) && 
+  개선권고항목이 아니면 체크가능
 
  - 부적합 항목이 선택된 경우 사진촬영
  - 사진촬영 후 해당 사진파일명 셋팅   

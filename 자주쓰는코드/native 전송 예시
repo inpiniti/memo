@@ -4,3 +4,14 @@ uniqId: args?.[0]?.chkExecNum, // 점검 실행 번호
       url: 'api/send/safeChk/safeChkRsltMtrReg',
       params: args,
       obj: 'safeChkMtrInfo',
+
+
+
+      native.post({
+      uniqId: finalArgs.chkExecNum,
+      dutyFlag: 'SAFETY_CHECK',
+      workFlag: 'send_update',
+      url: 'api/safeChk/chkExcepReg',
+      params: [finalArgs],
+      obj: 'safeChkData',
+    })

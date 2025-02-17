@@ -1,0 +1,19 @@
+import CODES from 'util/codes.json'
+
+CODES?.COMMONCODE?.BOIL_LOC?.map((item) => ({
+        name: item.name,
+        key: item.code,
+        value: item.name,
+}))
+
+
+import { getCode } from '@apis/service/PromiseService'
+
+await getCode({
+      type: 'commonCode',
+      params: {
+        codeId: 'C10004',
+      },
+    })
+    return codes
+  }
