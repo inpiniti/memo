@@ -422,7 +422,7 @@
   -> safeChkRegtrNoGoodInfo.safeChkType		-> safeChkRegtrInfo.safeChkType
   -> safeChkRegtrNoGoodInfo.regtrNotPassFlag	-> 사전 셋팅값
   -> safeChkRegtrNoGoodInfo.regtrNotPassItem	-> 부적합항목코드
-  -> safeChkRegtrNoGoodInfo.notPassBetterYmd	-> 오늘일자 (부적합->적합인 경우 null)
+  -> safeChkRegtrNoGoodInfo.notPassBetterYmd	-> 오늘일자 (부적합->적합인 경우 null) ------ 둘다 눌럿을떄 'Y', 일자 샛팅
   -> safeChkRegtrNoGoodInfo.correctionFlag	-> 'Y'	(부적합->적합인 경우 'N')
   -> safeChkRegtrNoGoodInfo.sendYn			-> 'S'
   -> safeChkRegtrNoGoodInfo.empId			-> init-data.employeeData.employeeId
