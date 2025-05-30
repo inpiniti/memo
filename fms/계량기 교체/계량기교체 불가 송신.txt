@@ -1,0 +1,29 @@
+교체불가 저장
+/api/send/mtrChage/mtrNotChangeReg
+
+SELECT MRT.MTR_NUM
+  FROM C31.C3BT_MTR_REPL_TREAT MRT
+      ,C31.C3BT_MTR_REPL_OBJ_CRT MRO
+ WHERE MRT.MTR_NUM = MRO.MTR_NUM
+   AND MRT.OBJ_CRT_YMD = MRO.OBJ_CRT_YMD
+   AND MRT.OBJ_CRT_YMD  = #obj_crt_ymd#
+   AND MRO.MTR_NUM = #mtr_num#
+
+해당 데이터가 있으면 
+
+UPDATE C31.C3BT_MTR_REPL_TREAT
+SET VISIT_YMD			  = NVL(#visit_ymd#              ,' ')
+ , REPL_NOT_PERMIT_WHY    = NVL(#repl_not_permit_why#    ,' ')
+ , UPD_DTM 				  = SYSDATE
+ , UPD_EMPID              = NVL(#jober_empid#            ,' ')
+WHERE MTR_NUM                = #mtr_num#
+AND REPL_TREAT_YMD         = TO_CHAR(SYSDATE,'yyyymmdd')
+AND REPL_RSLT_REFLE_CD  IN ('20', '30')
+
+업데이트
+
+없으면 "교체대상이 없습니다"
+
+
+교체불가 사진 전송 api 호출
+- /api/send/mtrChage/mtrChangeRsltPhotoReg

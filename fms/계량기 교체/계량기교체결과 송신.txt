@@ -1,0 +1,737 @@
+#계량기교체결과송신
+교체, 교체불가 등...결과송신
+
+- /api/send/mtrChage/mtrChangeRsltReg
+- param : 
+
+C6301_CHANGEDATA 에서 SEND_YN = 'S' 인 것들은 조회
+0건이면 "송신할 자료가 없습니다."
+0건 이상이면 전송하고 사진도 전송
+
+전송 완료 후에는 C6301_CHANGEDATA SET SEND_YN = 'Y' WHERE SEND_YN = 'S' 업데이트
+
+
+# backend
+
+// getNobill_yn 가 "Y" 면 무전표교체
+
+rep_item_info_chk = (List<FR75302_OUT_Item>) smct.queryForList("call_FR75302_nobill_info_chk", map);
+
+    /*
+    SELECT   MRI.MTR_NUM
+    FROM   C31.C3BT_NO_BILL_MTR_REPL_INFO MRI
+    WHERE   MRI.MTR_NUM = #mtr_num#
+    AND   MRI.NO_BILL_REG_YMD = #obj_crt_ymd#
+    AND   MRI.REPL_JOB_ITEM = '10'
+    */
+
+if(rep_item_info_chk.size() == 0)
+{
+    rep_item = (List<FR75302_OUT_Item>) smct.queryForList("call_FR75302_nobill", map);
+    /*
+    SELECT   MRQ.MTR_NUM
+    FROM C31.C3BT_NO_BILL_MTR_REPL_REQ MRQ
+        ,C31.C3BT_NO_BILL_MTR_REPL_OBJ MRO
+    WHERE MRQ.MTR_NUM = MRO.MTR_NUM
+    AND MRO.OBJ_CRT_YMD = MRQ.NO_BILL_REG_YMD
+    AND MRQ.MTR_NUM = #mtr_num#
+    AND MRO.SEND_YN <> 'Y'
+    */
+
+    b64sign = req_item.getCust_sign();
+    if(b64sign != null)
+    {
+        byte[] bsign = Base64.decodeBase64( b64sign );
+        map.put("cust_sign_b", bsign );
+    }
+    if( rep_item.size() == 0)
+    {	
+        retchk = adaptor.insert("call_FR75302_Insert_Nobill", map);
+        
+        /*
+            INSERT	INTO C31.C3BT_NO_BILL_MTR_REPL_REQ(
+					MTR_NUM													
+				,	NO_BILL_REPL_YMD										
+				,	REPL_JOB_ITEM											
+				,	NO_BILL_REG_YMD											
+				,	NO_BILL_REG_SEQ											
+				,	UPD_DTM													
+				,	UPD_EMPID												
+				,	UPD_IP													
+				,	CRT_DTM													
+				,	CRT_EMPID												
+				,	CRT_IP		
+				,	REQ_EMPID												
+				,	CONF_EMPID												
+				,	CONF_YMD						
+				,	REPL_INSTI												
+				,	REPL_TREAT_INSTI										
+				,	NO_BILL_REPL_WHY										
+				,	INST_INDI_VC											
+				,	INST_INDI_VA											
+				,	INST_INDI_VM											
+				,	REMOVE_INDI_VC											
+				,	REMOVE_INDI_VA											
+				,	REMOVE_INDI_VM											
+				,	REPL_EMPID												
+				,	REPL_NM													
+				,	RESOU_REPL_WHY											
+				,	MTR_MODEL_CD											
+				,	MTR_TYPE												
+				,	MTR_GRD													
+				,	MTR_DIGIT_CNT											
+				,	MTR_NEW_FIX_FLAG										
+				,	MTR_ID_NUM												
+				,	MTR_VALID_YM											
+				,	MTR_REMOTE_FLAG											
+				,	MTR_KIND												
+				,	MTR_APPRO_YN			
+				,	MTR_REPL_WHY					
+				,	PRESS					
+				,	USE_CONT_NUM											
+				,	PROD_CONT_SEQ											
+				,	RMK														
+				,	MTR_PHOTO_ID											
+				,	INST_MTR_PHOTO_ID
+				,	COMM_NUM 												
+				,	COMM_FIRM 												
+				,	INFLOW_FLAG 
+				,   MTR_CHG_OCCU_CD											
+			) VALUES (
+				#mtr_num#
+				,TO_CHAR(SYSDATE,'yyyymmdd')
+				,#pda_repl_job_item#
+				,#obj_crt_ymd#								
+				,(
+						SELECT	LPAD(NVL(MAX(NO_BILL_REG_SEQ),0)+1,3,'0')
+						  FROM	C31.C3BT_NO_BILL_MTR_REPL_REQ
+						 WHERE	MTR_NUM          = #mtr_num#
+						   AND	NO_BILL_REPL_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+						   AND	REPL_JOB_ITEM    = #pda_repl_job_item#
+						   AND	NO_BILL_REG_YMD  = TO_CHAR(SYSDATE,'YYYYMMDD')
+				)														
+				, SYSDATE
+				, NVL(#jober_empid#            , ' ')
+				, NVL(#pda_num#                , ' ')
+				, SYSDATE
+				, NVL(#jober_empid#            , ' ')
+				, NVL(#pda_num#                , ' ')
+				, NVL(#jober_empid#            , ' ')										
+				,' '														
+				,' '							
+				,C31.PKS_C3_FUNC_02.GET_MTR_REPL_INSTI(#jober_empid#)		
+				,NVL(#repl_treat_insti#       , ' ')						
+				,NVL(#no_bill_repl_why#       , '10')							
+				,nvl(TRIM(#inst_indi_vc#),0)							
+				,nvl(TRIM(#inst_indi_va#),0)							
+				,nvl(TRIM(#inst_indi_vm#),0)							
+				,nvl(TRIM(#remove_indi_vc#),0)							
+				,nvl(TRIM(#remove_indi_va#),0)							
+				,nvl(TRIM(#remove_indi_vm#),0)							
+				,NVL(#jober_empid#            , ' ')								
+				,NVL((SELECT NM_KOR FROM A11.A1AT_USER_MASTER WHERE EMPLOYEE_ID = #jober_empid#),' ') 												
+				,NVL(#mtr_repl_why#           , ' ')											
+				,NVL(#after_mtr_model_cd#     , ' ')							
+				,NVL(#after_mtr_type#         , ' ')											
+				,NVL(#after_mtr_grd#          , 0)  										
+				,NVL(#after_mtr_digit_cnt#    , 0)  									
+				,NVL(#after_mtr_new_fix_flag# , ' ')								
+				,NVL(#after_mtr_id_num#       , ' ')								
+				,NVL(#after_mtr_valid_ym#     , ' ')					
+				,NVL(#after_mtr_remote_flag#  , ' ')										
+				,NVL(#after_mtr_kind#         , ' ')											
+				,NVL(#after_mtr_appro_yn#     , 'Y')	
+				,#mtr_repl_why#
+				,#press#				
+				,#use_cont_num#											
+				,#prod_cont_seq#										
+				,#memo#													
+				,#file_id_1#											
+				,#file_id_2#			
+				,#comm_num# 											
+				,#comm_firm#											
+				,#inflow_flag# 		
+				,'40'								
+			)            
+        */
+
+    }
+        else
+    {
+        ret = smct.update("call_FR75302_Update_Nobill", map);
+
+        /*
+        UPDATE C31.C3BT_NO_BILL_MTR_REPL_REQ
+			   SET 	
+				    REPL_JOB_ITEM	   = #pda_repl_job_item#								
+				,	UPD_DTM		       = SYSDATE										
+				,	UPD_EMPID		   = NVL(#jober_empid#            , ' ')										
+				,	UPD_IP		       = NVL(#pda_num#                , ' ')	
+				,	REPL_INSTI		   = C31.PKS_C3_FUNC_02.GET_MTR_REPL_INSTI(#jober_empid#)									
+				,	REPL_TREAT_INSTI   = NVL(#repl_treat_insti#       , ' ')									
+				,	NO_BILL_REPL_WHY   = NVL(#no_bill_repl_why#		  , '10')								
+				,	INST_INDI_VC	   = nvl(TRIM(#inst_indi_vc#),0)							
+				,	INST_INDI_VA	   = nvl(TRIM(#inst_indi_va#),0)											
+				,	INST_INDI_VM	   = nvl(TRIM(#inst_indi_vm#),0)									
+				,	REMOVE_INDI_VC	   = nvl(TRIM(#remove_indi_vc#),0)										
+				,	REMOVE_INDI_VA	   = nvl(TRIM(#remove_indi_va#),0)											
+				,	REMOVE_INDI_VM	   = nvl(TRIM(#remove_indi_vm#),0)											
+				,	REPL_EMPID		   = NVL(#jober_empid#            , ' ')										
+				,	REPL_NM			   = NVL((SELECT NM_KOR FROM A11.A1AT_USER_MASTER WHERE EMPLOYEE_ID = #jober_empid#),' ')									
+				,	RESOU_REPL_WHY	   = NVL(#mtr_repl_why#           , ' ')
+				,	MTR_MODEL_CD	   = NVL(#after_mtr_model_cd#     , ' ')										
+				,	MTR_TYPE		   = NVL(#after_mtr_type#         , ' ')									
+				,	MTR_GRD			   = NVL(#after_mtr_grd#          , 0) 									
+				,	MTR_DIGIT_CNT	   = NVL(#after_mtr_digit_cnt#    , 0)  										
+				,	MTR_NEW_FIX_FLAG   = NVL(#after_mtr_new_fix_flag# , ' ')								
+				,	MTR_ID_NUM		   = NVL(#after_mtr_id_num#       , ' ')									
+				,	MTR_VALID_YM	   = NVL(#after_mtr_valid_ym#     , ' ')								
+				,	MTR_REMOTE_FLAG	   = NVL(#after_mtr_remote_flag#  , ' ')										
+				,	MTR_KIND		   = NVL(#after_mtr_kind#         , ' ')									
+				,	MTR_APPRO_YN	   = NVL(#after_mtr_appro_yn#     , 'Y')		
+				,	MTR_REPL_WHY	   = #mtr_repl_why#			
+				,	PRESS			   = #press#	
+				,	RMK				   = #memo#
+				,	COMM_NUM 		   = #comm_num#										
+				,	COMM_FIRM 		   = #comm_firm#						
+				,	INFLOW_FLAG        = #inflow_flag#
+				,   MTR_CHG_OCCU_CD    = '40'
+			 WHERE MTR_NUM             = #mtr_num#
+			   AND NO_BILL_REG_YMD   = #obj_crt_ymd#
+        */
+
+        if(ret <= 0)
+        {
+            rep.setCode("FR75302");
+            rep.setMessage( "점검결과 등록에 실패했습니다." );
+            return rep;
+        }
+    }
+}
+
+마지막에
+ret = smct.update("call_FR75302_obj_nobill", map);
+/*
+			UPDATE C31.C3BT_NO_BILL_MTR_REPL_OBJ
+			   SET UPD_EMPID = NVL(#jober_empid#, ' ')
+			     , UPD_DTM 	 = SYSDATE    
+			     , SEND_YN   = 'Y'
+			 WHERE MTR_NUM = #mtr_num#
+			   AND OBJ_CRT_YMD = #obj_crt_ymd#
+*/
+
+// getNobill_yn 가 "Y" 아니면 
+
+
+rep_item = (List<FR75302_OUT_Item>) smct.queryForList("call_FR75302", map);
+    /*
+             SELECT MRT.MTR_NUM
+			  FROM C31.C3BT_MTR_REPL_TREAT MRT
+			      ,C31.C3BT_MTR_REPL_OBJ_CRT MRO
+			 WHERE MRT.MTR_NUM = MRO.MTR_NUM
+			   AND MRT.OBJ_CRT_YMD = MRO.OBJ_CRT_YMD
+			   AND MRT.OBJ_CRT_YMD  = #obj_crt_ymd#
+			   AND MRO.MTR_NUM = #mtr_num#
+    */
+
+b64sign = req_item.getCust_sign();
+if(b64sign != null)
+{
+    byte[] bsign = Base64.decodeBase64( b64sign );
+    map.put("cust_sign_b", bsign );
+}
+
+if( rep_item.size() == 0)
+{
+    retchk = adaptor.insert("call_FR75302_Insert", map);
+
+    /*
+    INSERT INTO C31.C3BT_MTR_REPL_TREAT
+			(
+				  MTR_NUM
+				, REPL_TREAT_YMD
+				, UPD_EMPID
+				, UPD_DTM
+				, CRT_EMPID
+				, CRT_DTM
+				, CRT_IP
+				, OBJ_CRT_YMD
+				, CENTER_CD
+				, PDA_REPL_JOB_ITEM
+				, PDA_NUM
+				, INST_PLACE_NUM
+				, MTR_FEE_FREE_FLAG
+				, MTR_REPL_WHY
+				, MTR_BAR
+				, AFTER_MTR_ID_NUM 
+				, AFTER_MTR_MODEL_CD
+				, AFTER_MTR_GRD
+				, AFTER_MTR_FORM
+				, AFTER_MTR_TYPE
+				, AFTER_MTR_REMOTE_FLAG
+				, AFTER_MTR_KIND
+				, AFTER_MTR_DIGIT_CNT
+				, AFTER_MTR_NEW_FIX_FLAG
+				, AFTER_FIX_FIRM_NM_CD
+				, AFTER_MTR_VALID_YM
+				, AFTER_MTR_APPRO_YN
+				, COMPENS_FEE_FREE_FLAG
+				, COMPENS_REPL_WHY
+				, COMPENS_BAR     
+				, AFTER_COMPENS_NUM
+				, AFTER_COMPENS_ID_NUM
+				, AFTER_COMPENS_MODEL_CD
+				, AFTER_COMPENS_VALID_YM
+				, AFTER_COMPENS_PRESS
+				, AFTER_FORM_APPRO_YN
+				, REMOVE_INDI_VM
+				, REMOVE_INDI_VA
+				, REMOVE_INDI_VC
+				, INST_INDI_VM
+				, INST_INDI_VA
+				, INST_INDI_VC
+				, TEMPER
+				, PRESS
+				, REVIS_PARA
+				, TREAT_FLAG
+				, REPL_NOT_PERMIT_WHY
+				, JOB_DTM
+				, JOBER_EMPID
+				, CUST_SIGN
+				, VISIT_YMD
+				, MEMO
+				, MTR_PHOTO_ID
+				, COMPENS_PHOTO_ID 
+				, COMM_NUM
+				, COMM_FIRM
+				, INFLOW_FLAG
+				, BULD_CENTER_CD
+				, BATTERY_AMT_YN
+				, INDICATION_AMT_YN
+				, ETC_PART_AMT
+				, AFTER_REMOTE_MANAGE_FIRM 
+				, MARGIN_AMT_YN
+				, REMOTE_ADD_AMT_YN
+				, CONN_LINE_AMT_YN 
+				, CONCENT_INST_AMT_YN
+			)
+			VALUES
+			(
+				  #mtr_num#
+				, TO_CHAR(SYSDATE,'yyyymmdd') 
+				, NVL(#jober_empid#            , ' ')
+				, SYSDATE
+				, NVL(#jober_empid#            , ' ')
+				, SYSDATE
+				, NVL(#pda_num#                , ' ')
+				, #obj_crt_ymd#              
+				, NVL(#center_cd#              , ' ')
+				, NVL(#pda_repl_job_item#      , ' ')
+				, NVL(#pda_num#                , ' ')
+				, NVL(#inst_place_num#         , ' ')
+				, NVL(#mtr_fee_free_flag#      , ' ')
+				, NVL(#mtr_repl_why#           , ' ')
+				, NVL(#mtr_bar#                , ' ')
+				, NVL(#after_mtr_id_num#       , ' ')
+				, NVL(#after_mtr_model_cd#     , ' ')
+				, NVL(#after_mtr_grd#          , 0)  
+				, NVL(#after_mtr_form#         , ' ')
+				, NVL(#after_mtr_type#         , ' ')
+				, NVL(#after_mtr_remote_flag#  , ' ')
+				, NVL(#after_mtr_kind#         , ' ')
+				, NVL(#after_mtr_digit_cnt#    , 0)  
+				, NVL(#after_mtr_new_fix_flag# , ' ')
+				, NVL(#after_fix_firm_nm_cd#   , ' ')
+				, NVL(#after_mtr_valid_ym#     , ' ')
+				, NVL(#after_mtr_appro_yn#     , 'Y')
+				, NVL(#compens_fee_free_flag#  , ' ')
+				, NVL(#compens_repl_why#       , ' ')
+				, NVL(#compens_bar#            , ' ')
+				, NVL(#after_compens_num#      , ' ')
+				, NVL(#after_compens_id_num#   , ' ')
+				, NVL(#after_compens_model_cd# , ' ')
+				, NVL(#after_compens_valid_ym# , ' ')
+				, NVL(#after_compens_press#    , 0)  
+				, NVL(#after_form_appro_yn#    , 'Y')
+				, NVL(#remove_indi_vm#         , 0) 
+				, NVL(#remove_indi_va#         , 0) 
+				, NVL(#remove_indi_vc#         , 0) 
+				, NVL(#inst_indi_vm#           , 0) 
+				, NVL(#inst_indi_va#           , 0) 
+				, NVL(#inst_indi_vc#           , 0) 
+				, NVL(#temper#                 , 0) 
+				, NVL(#press#                  , 0) 
+				, NVL(#revis_para#             , 0) 
+				, NVL(#treat_flag# , ' ')           
+				, NVL(#repl_not_permit_why#    , ' ')  
+				, TO_DATE(#job_dtm#, 'yyyymmddhh24miss')
+				, NVL(#jober_empid#            , ' ')  
+				, #cust_sign_b#
+				, NVL(#visit_ymd# , ' ')
+				, NVL(#memo# , ' ') 
+				, 0
+				, 0
+				, NVL(#comm_num# , ' ')
+				, NVL(#comm_firm# , ' ')
+				, NVL(#inflow_flag# , ' ')
+				, NVL(#buld_center_cd# , ' ')
+				, NVL(#battery_yn#,' ')
+				, NVL(#mtrdisplay_yn#, ' ')
+				, NVL(#other_price#, 0 )
+				, NVL(#remote_system#, ' ')
+				, (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE( '1'  
+                                                                                                 , #center_cd#
+                                                                                                 , #after_mtr_kind#
+                                                                                                 , #after_mtr_remote_flag#
+                                                                                                 , #after_mtr_grd#
+                                                                                                 , TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+                                                                                                 ) > 0 THEN 'Y' ELSE 'N' END )
+       			  ELSE '' END)
+       			, (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE( '2'  
+                                                                                                 , #center_cd#
+                                                                                                 , #after_mtr_kind#
+                                                                                                 , #after_mtr_remote_flag#
+                                                                                                 , #after_mtr_grd#
+                                                                                                 , TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+                                                                                                 ) > 0 THEN 'Y' ELSE 'N' END )
+       			  ELSE '' END)
+       			, (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE('6'
+       			                                                                                ,#center_cd#
+       			                                                                                ,#after_mtr_kind#
+                                                                                                ,#after_mtr_remote_flag#
+                                                                                                ,#after_mtr_grd#
+       			                                                                                ,TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+       			                                                                                ) > 0 THEN 'Y' ELSE 'N' END )
+       			  ELSE '' END)
+       			, NVL(#concent_inst_amt_yn#, ' ')
+				
+			)
+    */
+}
+else
+{
+    ret = smct.update("call_FR75302_Update", map);
+    /*
+    UPDATE C31.C3BT_MTR_REPL_TREAT
+			   SET OBJ_CRT_YMD            = NVL(#obj_crt_ymd#            ,' ')     
+				 , UPD_EMPID              = NVL(#jober_empid#            ,' ') 
+				 , UPD_DTM 				  = SYSDATE
+				 , CRT_EMPID              = NVL(#jober_empid#            ,' ')
+				 , CRT_IP              	  = NVL(#pda_num#                ,' ')
+				 , CENTER_CD              = NVL(#center_cd#              ,' ')
+				 , PDA_REPL_JOB_ITEM      = NVL(#pda_repl_job_item#      ,' ')
+				 , PDA_NUM                = NVL(#pda_num#                ,' ')
+				 , INST_PLACE_NUM         = NVL(#inst_place_num#         ,' ')
+				 , MTR_FEE_FREE_FLAG      = NVL(#mtr_fee_free_flag#      ,' ')
+				 , MTR_REPL_WHY           = NVL(#mtr_repl_why#           ,' ')
+				 , MTR_BAR                = NVL(#mtr_bar#                ,' ')
+				 , AFTER_MTR_ID_NUM       = NVL(#after_mtr_id_num#       ,' ')
+				 , AFTER_MTR_MODEL_CD     = NVL(#after_mtr_model_cd#     ,' ')
+				 , AFTER_MTR_GRD          = NVL(#after_mtr_grd#          ,0)  
+				 , AFTER_MTR_FORM         = NVL(#after_mtr_form#         ,' ')
+				 , AFTER_MTR_TYPE         = NVL(#after_mtr_type#         ,' ')
+				 , AFTER_MTR_REMOTE_FLAG  = NVL(#after_mtr_remote_flag#  ,' ')
+				 , AFTER_MTR_KIND         = NVL(#after_mtr_kind#         ,' ')
+				 , AFTER_MTR_DIGIT_CNT    = NVL(#after_mtr_digit_cnt#    ,0)  
+				 , AFTER_MTR_NEW_FIX_FLAG = NVL(#after_mtr_new_fix_flag# ,' ')
+				 , AFTER_FIX_FIRM_NM_CD   = NVL(#after_fix_firm_nm_cd#   ,' ')
+				 , AFTER_MTR_VALID_YM     = NVL(#after_mtr_valid_ym#     ,' ')
+				 , COMPENS_FEE_FREE_FLAG  = NVL(#compens_fee_free_flag#  ,' ')
+				 , COMPENS_REPL_WHY       = NVL(#compens_repl_why#       ,' ')
+				 , COMPENS_BAR            = NVL(#compens_bar#            ,' ')
+				 , AFTER_COMPENS_NUM      = NVL(#after_compens_num#      ,' ')
+				 , AFTER_COMPENS_ID_NUM   = NVL(#after_compens_id_num#   ,' ')
+				 , AFTER_COMPENS_MODEL_CD = NVL(#after_compens_model_cd# ,' ')
+				 , AFTER_COMPENS_VALID_YM = NVL(#after_compens_valid_ym# ,' ')
+				 , AFTER_COMPENS_PRESS    = NVL(#after_compens_press#    ,0)
+				 , REMOVE_INDI_VM         = NVL(#remove_indi_vm#         ,0)
+				 , REMOVE_INDI_VA         = NVL(#remove_indi_va#         ,0)
+				 , REMOVE_INDI_VC         = NVL(#remove_indi_vc#         ,0)
+				 , INST_INDI_VM           = NVL(#inst_indi_vm#           ,0)
+				 , INST_INDI_VA           = NVL(#inst_indi_va#           ,0)
+				 , INST_INDI_VC           = NVL(#inst_indi_vc#           ,0)
+				 , TEMPER                 = NVL(#temper#                 ,0)
+				 , PRESS                  = NVL(#press#                  ,0)
+				 , REVIS_PARA             = NVL(#revis_para#             ,0)
+				 , TREAT_FLAG             = NVL(#treat_flag#             ,' ')
+				 , REPL_NOT_PERMIT_WHY    = NVL(#repl_not_permit_why#    ,' ')
+				 , JOB_DTM                = NVL(TO_DATE(#job_dtm#, 'yyyymmddhh24miss'), SYSDATE)
+				 , JOBER_EMPID            = NVL(#jober_empid#            ,' ')
+				 , CUST_SIGN              = #cust_sign_b#
+				 , VISIT_YMD			  = NVL(#visit_ymd#              ,' ')
+				 , MEMO					  = NVL(#memo#                   ,' ')
+				 , COMM_NUM				  = NVL(#comm_num#				 ,' ')
+				 , COMM_FIRM			  = NVL(#comm_firm#				 ,' ')
+				 , INFLOW_FLAG			  = NVL(#inflow_flag#			 ,' ')
+				 , BULD_CENTER_CD		  = NVL(#buld_center_cd#		 ,' ')
+				 , MARGIN_AMT_YN          = (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE( '1'  
+                                                                                                 , #center_cd#
+                                                                                                 , #after_mtr_kind#
+                                                                                                 , #after_mtr_remote_flag#
+                                                                                                 , #after_mtr_grd#
+                                                                                                 , TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+                                                                                                 ) > 0 THEN 'Y' ELSE 'N' END )
+       			  							ELSE '' END)
+       			, REMOTE_ADD_AMT_YN       = (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE( '2'  
+                                                                                                 , #center_cd#
+                                                                                                 , #after_mtr_kind#
+                                                                                                 , #after_mtr_remote_flag#
+                                                                                                 , #after_mtr_grd#
+                                                                                                 , TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+                                                                                                 ) > 0 THEN 'Y' ELSE 'N' END )
+       			  							ELSE '' END)
+       		   , AFTER_REMOTE_MANAGE_FIRM  = NVL(#remote_system#, ' ')
+       		   , CONN_LINE_AMT_YN = (CASE WHEN #old_mtr_id_num# = 'N' THEN (CASE WHEN C31.PKS_C3_FUNC_03.FUNC_GET_SPC_MTR_CHG_FEE('6'
+       			                                                                                ,#center_cd#
+       			                                                                                ,#after_mtr_kind#
+                                                                                                ,#after_mtr_remote_flag#
+                                                                                                ,#after_mtr_grd#
+       			                                                                                , TO_CHAR(TO_DATE(#job_dtm#, 'YYYY/MM/DD HH24:MI:SS'), 'YYYYMMDD')
+       			                                                                                ) > 0 THEN 'Y' ELSE 'N' END )
+ 			   							  ELSE '' END)
+ 			   , CONCENT_INST_AMT_YN = NVL(#concent_inst_amt_yn#, ' ')
+			 WHERE MTR_NUM                = #mtr_num#
+			   AND REPL_TREAT_YMD         = TO_CHAR(SYSDATE,'yyyymmdd')
+			   AND REPL_RSLT_REFLE_CD  IN ('20', '30')
+    */
+
+    if(ret <= 0)
+    {
+        rep.setCode("FR75302");
+        rep.setMessage( "등록에 실패했습니다.\n"+req_item.getMtr_num() + "는 이미 반영된 값입니다." );
+        return rep;
+    }
+}
+
+마지막에
+ret = smct.update("call_FR75302_obj", map);
+/*
+			UPDATE C31.C3BT_MTR_REPL_OBJ_CRT
+			   SET UPD_EMPID = NVL(#jober_empid#, ' ')
+			     , UPD_DTM 	 = SYSDATE    
+			     , SAND_YN   = 'Y'
+			 WHERE MTR_NUM = #mtr_num#
+			   AND OBJ_CRT_YMD = #obj_crt_ymd#
+*/
+
+
+
+#교체 결과 사진 전송 (철거계량기, 설치계량기, 철거보정기, 설치보정기, 교체불가 사진)
+
+list형태로 보낼 것 교체불가사유 사진3개 이상 이니...
+
+- /api/send/mtrChage/mtrChangeRsltPhotoReg
+
+#backend 참고부분(call_FR75304)
+SimpleDateFormat form_day = new SimpleDateFormat ( "yyyyMMdd", Locale.KOREA );
+			SimpleDateFormat form_time = new SimpleDateFormat ( "HHmmss", Locale.KOREA );
+			Date currentTime = new Date ( );
+			String day = form_day.format ( currentTime );
+			String time = form_time.format ( currentTime );
+			String yyyy = day.substring(0, 4);
+			String mm = day.substring(4, 6);
+			String dd = day.substring(6, 8);
+			
+			LOG.debug("REQ: " + req.toString());
+			
+			try
+			{
+				map = adaptor.BeanToMap(req, map);
+				
+				b64sign = req.getPhoto();
+				byte[] bsign = Base64.decodeBase64( b64sign );
+				//map.put("photo_b", bsign );
+				
+				file_Seqs = (List<FILE_Seq>) smct.queryForList("call_file_seq");
+				/*
+				SELECT C31.C3S_FILE_ID.NEXTVAL AS SEQ FROM DUAL
+				*/
+				if(file_Seqs == null)
+				{
+					rep.setCode("FR75304");
+					rep.setMessage("파일ID 생성 실패 했습니다.");
+					return rep;
+				}
+				
+				szfileid = file_Seqs.get(0).getSeq();
+				map.put( "file_id", szfileid );
+				map.put( "file_code", "C31" );
+				
+				// /exdat03/C30/C31
+				szpath += File.separator+yyyy+File.separator+mm;
+				File path = new File(szpath);
+				if (!path.exists())
+				{
+					path.mkdirs();
+				}
+				
+				map.put( "file_path", szpath );
+								
+				szfilenm = "C31" +req.getGubun()+req.getMtr_num()+req.getNobill_yn()+"D"+day+time+".jpg";
+
+				map.put( "file_name", szfilenm );
+				
+				f = new CFile( szpath + "/" + szfilenm );
+				f.OpenReadWrite();
+				f.Write(bsign, bsign.length );
+				f.Close();
+				file_size = bsign.length;
+				szfilesize = String.valueOf(file_size);
+				 
+				map.put( "file_size", szfilesize );
+				
+				retchk = adaptor.insert("call_FR312317_File_Insert", map);
+				/*
+I				NSERT INTO C31.C3AT_FILE_INFO_PDA
+                (
+                    FILE_ID
+                    , FILE_NAME
+                    , ORG_FILE_NAME
+                    , FILE_CODE
+                    , FILE_PATH
+                    , FILE_SIZE
+                    , CRT_DTM
+                    , CRT_EMPID
+                    , CRT_IP
+                    , UPD_DTM
+                    , UPD_EMPID
+                    , UPD_IP
+                    , PHOTO_SEND_YMD
+                )
+                VALUES
+                (
+                    #file_id#
+                    , #file_name#
+                    , #file_name#
+                    , #file_code#
+                    , #file_path#
+                    , #file_size#
+                    , SYSDATE
+                    , #userid#
+                    , #clientid#
+                    , SYSDATE
+                    , #userid#
+                    , #clientid#
+                    , TO_CHAR(SYSDATE,'yyyymmdd')
+                )
+				*/
+
+				/*
+				if (ret < 0)
+				{
+					rep.setCode( "FR75304" );
+					rep.setMessage( "오류 발생 잠시 후 재시도 하십시오." );
+					return rep;
+				}
+				*/
+				
+				if( req.getGubun().equals("MBM")  )//철거계량기
+				{
+					if(req.getNobill_yn().equals("Y"))
+					{
+						ret = smct.update("call_FR75304_nobill_mtr", map);
+
+                        /*
+                            UPDATE C31.C3BT_NO_BILL_MTR_REPL_REQ
+                            SET MTR_PHOTO_ID = #file_id# 
+                                , UPD_DTM 		= SYSDATE    
+                            WHERE MTR_NUM      = #mtr_num#
+                            AND NO_BILL_REPL_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                        */
+
+					}
+					else
+					{
+						ret = smct.update("call_FR75304_mtr", map);
+
+                        /*
+                            UPDATE C31.C3BT_MTR_REPL_TREAT
+                            SET MTR_PHOTO_ID = #file_id# 
+                                , UPD_DTM 		= SYSDATE    
+                            WHERE MTR_NUM      = #mtr_num#
+                            AND REPL_TREAT_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                        */
+
+					}
+					if (ret < 0)
+					{
+						rep.setCode( "FR75304" );
+						rep.setMessage( "철거계량기 사진등록에 실패했습니다." );
+						return rep;
+					}
+				}
+				else if( req.getGubun().equals("MAM")  )//설치계량기
+				{
+					if(req.getNobill_yn().equals("Y"))
+					{
+						ret = smct.update("call_FR75304_inst_nobill_mtr", map);
+
+                        /*
+                            UPDATE C31.C3BT_NO_BILL_MTR_REPL_REQ
+                            SET INST_MTR_PHOTO_ID = #file_id# 
+                                , UPD_DTM 		     = SYSDATE    
+                            WHERE MTR_NUM           = #mtr_num# 
+                            AND NO_BILL_REPL_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                        */
+
+					}
+					else
+					{
+						ret = smct.update("call_FR75304_inst_mtr", map);
+
+                        /*
+                            UPDATE C31.C3BT_MTR_REPL_TREAT
+                            SET INST_MTR_PHOTO_ID = #file_id# 
+                                , UPD_DTM 		     = SYSDATE    
+                            WHERE MTR_NUM           = #mtr_num# 
+                            AND REPL_TREAT_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                        */
+					}
+					
+					//레코드가 한개도 반영되지 않은 경우.
+					if (ret < 0)
+					{
+						rep.setCode( "FR75304" );
+						rep.setMessage( "설치계량기 사진등록에 실패했습니다." );
+						return rep;
+					}
+				}
+				else if( req.getGubun().equals("CBM")  )//철거보정기
+				{
+					ret = smct.update("call_FR75304_compens", map);
+                    /*
+                        UPDATE C31.C3BT_MTR_REPL_TREAT
+                        SET COMPENS_PHOTO_ID = #file_id# 
+                            , UPD_DTM 		    = SYSDATE    
+                        WHERE MTR_NUM = #mtr_num# 
+                        AND REPL_TREAT_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                    */
+					//레코드가 한개도 반영되지 않은 경우.
+					if (ret < 0)
+					{
+						rep.setCode( "FR75304" );
+						rep.setMessage( "철거보정기 사진등록에 실패했습니다." );
+						return rep;
+					}
+				}
+				else if( req.getGubun().equals("CAM")  )//설치보정기
+				{
+					ret = smct.update("call_FR75304_inst_compens", map);
+                    /*
+                        UPDATE C31.C3BT_MTR_REPL_TREAT
+                        SET INST_COMPENS_PHOTO_ID = #file_id# 
+                            , UPD_DTM 		         = SYSDATE    
+                        WHERE MTR_NUM = #mtr_num# 
+                        AND REPL_TREAT_YMD = TO_CHAR(SYSDATE,'yyyymmdd')
+                    */
+
+					//레코드가 한개도 반영되지 않은 경우.
+					if (ret < 0)
+					{
+						rep.setCode( "FR75304" );
+						rep.setMessage( "설치보정기 사진등록에 실패했습니다." );
+						return rep;
+					}
+				}
+				bret = true;
+			}

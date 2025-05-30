@@ -1,0 +1,403 @@
+#소용량 - 계량기 교체 대상 목록 수신
+
+- /api/receive/mtrChage/meterReplaceMentObjInfo
+- param : center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (노후교체(10) , 민원교체(20) , 무전표교체(30))
+
+
+
+# ASIS 참고 (front)
+아래 계량기 교체 대상 수신된 목록 ASIS에서 사용하는 테이블 > C6301_CHANGEDATA
+
+
+# backend
+1. 계량기 교체 대상 수신 (mtrChangeInfo)
+( 참고 위치 - public FR75102_OUT call_FR75102(FR75102_IN req) )
+
+    if( req.getUserid().equals("202301028")) //서부거점
+    {
+        req.setCenter_cd("16");
+        req.setBuld_center_cd("61");
+    }
+    else if( req.getUserid().equals("202301030")) // 남부거점
+    {
+        req.setCenter_cd("16");
+        req.setBuld_center_cd("62");
+    }
+    else if( req.getUserid().equals("202301029")) //강북거점
+    {
+        req.setCenter_cd("16");
+        req.setBuld_center_cd("63");
+    }
+    else if( req.getUserid().equals("202301031")) //경기도 거점
+    {
+        req.setCenter_cd("16");
+        req.setBuld_center_cd("64");
+    }
+
+
+// ReplOccuFlag 10일 경우 (노후교체)
+(   
+    삭제한 부분 (전체 목록을 들고 클라이언트에서 처리하는 걸로 생각해서 삭제)
+        - isNotEmpty 로 되어있는 조건 검색들. ex) town, new_road_nm, compx_flag_nm ...
+)
+
+SELECT             MTR_NUM AS               MTR_NUM          				/*--  계량기번호 */
+			     , OBJ_CRT_YMD AS      	 	OBJ_CRT_YMD             		/*--  대상생성일자 */
+			     , REPL_OCCU_FLAG AS    	REPL_OCCU_FLAG   				/*--  교체발생구분 */
+			     , CENTER_CD AS           	CENTER_CD          				/*--  고객센터코드 */
+			     , PDA_REPL_JOB_ITEM AS 	PDA_REPL_JOB_ITEM          		/*--  PDA교체작업구분 */
+			     , INST_PLACE_NUM AS        INST_PLACE_NUM          		/*--  설치장소번호 */
+			     , CITY AS           		CITY          					/*--  시도 */
+			     , AREA AS           		AREA          					/*--  시군구 */
+			     , TOWN AS           		TOWN          					/*--  읍면동 */
+			     , VILLAGE AS           	VILLAGE          				/*--  리 */
+			     , ADDR1_M AS           	ADDR1_M          				/*--  지번_본번 */
+			     , ADDR1_S AS           	ADDR1_S          				/*--  지번_부번 */
+			     , LOT_NUM_SECOND_ADDR AS   LOT_NUM_SECOND_ADDR          	/*--  지번_보조주소 */
+			     , TRIM(CO_LIVE_NM) AS      CO_LIVE_NM          			/*--  공동주택명 */
+			     , HOUSE_CNT AS           	HOUSE_CNT          				/*--  세대호수 */
+			     , TRIM(BLD_NM) AS          BLD_NM          				/*--  건물명 */
+			     , DETA_FLOOR AS           	DETA_FLOOR          			/*--  세부층 */
+			     , LAW_TOWN AS				LAW_TOWN						/*--  법정동 */
+			     , NEW_ROAD_NM AS			NEW_ROAD_NM						/*--  도로명 */
+			     , NEW_ADDR_M AS			NEW_ADDR_M						/*--  새주소본번 */
+			     , NEW_ADDR_S AS			NEW_ADDR_S						/*--  새주소부번 */
+			     , CUST_NUM AS           	CUST_NUM          				/*--  고객번호 */
+			     , CUST_TYPE_CD AS          CUST_TYPE_CD          			/*--  고객유형코드 */
+			     , CUST_NM AS           	CUST_NM          				/*--  고객명 */
+			     , FIRM_NM AS           	FIRM_NM          				/*--  업체상호명 */
+			     , BIZ_REGI_NUM AS          BIZ_REGI_NUM          			/*--  사업자번호 */
+			     , SOC_NUM AS           	SOC_NUM          				/*--  주민번호 */
+			     , REPRE_NM AS           	REPRE_NM          				/*--  대표자명 */
+			     , CP_DDD AS           		CP_DDD          				/*--  휴대폰_식별번호 */
+			     , CP_EXN AS           		CP_EXN          				/*--  휴대폰_국번 */
+			     , CP_NUM AS           		CP_NUM          				/*--  휴대폰_번호 */
+			     , OWNHOUSE_TEL_DDD AS      OWNHOUSE_TEL_DDD          		/*--  자택전화_식별번호 */
+			     , OWNHOUSE_TEL_EXN AS      OWNHOUSE_TEL_EXN          		/*--  자택전화_국번 */
+			     , OWNHOUSE_TEL_NUM AS      OWNHOUSE_TEL_NUM          		/*--  자택전화_번호 */
+			     , FIRM_TEL_DDD AS          FIRM_TEL_DDD          			/*--  회사전화_식별번호 */
+			     , FIRM_TEL_EXN AS          FIRM_TEL_EXN          			/*--  회사전화_국번 */
+			     , FIRM_TEL_NUM AS          FIRM_TEL_NUM          			/*--  회사전화_번호 */
+			     , USE_CONT_NUM AS          USE_CONT_NUM          			/*--  사용계약번호 */
+			     , PROD_CD AS           	PROD_NM          				/*--  상품명 */
+			     , CONT_YMD AS           	CONT_YMD          				/*--  계약일자 */
+			     , CNL_YMD AS           	CNL_YMD          				/*--  해지일자 */
+			     , MTR_ID_NUM AS           	MTR_ID_NUM          			/*--  계량기기물번호 */
+			     , MTR_MODEL_CD AS          MTR_MODEL_CD          			/*--  계량기모델코드 */
+			     , TO_CHAR(MTR_GRD) AS   	MTR_GRD          				/*--  계량기등급 */
+			     , MTR_FORM AS           	MTR_FORM          				/*--  계량기형식 */
+			     , MTR_TYPE AS           	MTR_TYPE          				/*--  계량기타입 */
+			     , MTR_REMOTE_FLAG AS       MTR_REMOTE_FLAG          		/*--  계량기원격구분 */
+			     , MTR_KIND AS           	MTR_KIND          				/*--  계량기종류 */
+			     , MTR_FORM_APPRO_YN AS     MTR_FORM_APPRO_YN          		/*--  계량기형식승인여부 */
+			     , MTR_DIGIT_CNT AS         MTR_DIGIT_CNT          			/*--  계량기자릿수 */
+			     , MTR_NEW_FIX_FLAG AS      MTR_NEW_FIX_FLAG          		/*--  계량기신수리구분 */
+			     , FIX_FIRM_NM_CD AS        FIX_FIRM_NM_CD          		/*--  수리업체코드 */
+			     , MTR_VALID_YM AS          MTR_VALID_YM          			/*--  계량기유효년월 */
+			     , MTR_LOC_FLAG AS          MTR_LOC_FLAG          			/*--  계량기위치구분 */
+			     , MTR_DETA_LOC AS          MTR_DETA_LOC          			/*--  계량기상세위치 */
+			     , COMPENS_NUM AS           COMPENS_NUM          			/*--  보정기번호 */
+			     , COMPENS_ID_NUM AS        COMPENS_ID_NUM          		/*--  보정기기물번호 */
+			     , COMPENS_MODEL_CD AS      COMPENS_MODEL_CD          		/*--  보정기모델코드 */
+			     , COMPENS_FLAG AS          COMPENS_FLAG          			/*--  보정기구분 */
+			     , COMPENS_VALID_YM AS      COMPENS_VALID_YM          		/*--  보정기유효년월 */
+			     , COMPENS_FORM_APPRO_YN AS COMPENS_FORM_APPRO_YN          	/*--  보정기형식승인여부  */
+			     , BEFO_INDI_VM AS          BEFO_INDI_VM          			/*--  전월지침_VM */
+			     , BEFO_INDI_VA AS          BEFO_INDI_VA          			/*--  전월지침_VA */
+			     , BEFO_INDI_VC AS          BEFO_INDI_VC          			/*--  전월지침_VC */
+			     , REPL_STS AS           	REPL_STS          				/*--  교체상태 */
+			     , ZIP_NO1 AS           	ZIP_NO1          				/*--  우편번호1 */
+			     , ZIP_NO2 AS           	ZIP_NO2          				/*--  우편번호2 */
+			     , TO_CHAR(TEMPER) AS       BEFO_TEMPER          		    /*--  온도 */
+			     , TO_CHAR(PRESS) AS        BEFO_PRESS         	 			/*--  압력 */
+			     , TO_CHAR(REVIS_PARA) AS   BEFO_REVIS_PARA         		/*--  계수 */
+			     , '' AS           		    TEMPER          				/*--  온도 */
+			     , '' AS           		    PRESS         	 				/*--  압력 */
+			     , '' AS           	        REVIS_PARA         				/*--  계수 */
+			     , REVIS_FLAG AS            REVIS_FLAG         				/*--  보정기유무 */
+			     , ( SELECT X.MAKER_NM FROM C31.C3AT_USE_MAKER X WHERE X.MAKER_FLAG = '40' AND X.MAKER_NUM = COMPENS_MAKER_NUM ) AS COMPENS_MAKER_NM
+				 , ( SELECT MTR.MTR_SUPPLY_STS FROM C31.C3AT_MTR MTR WHERE MTR.MTR_NUM = O.MTR_NUM ) AS MTR_SUPPLY_STS
+				 , 'N' AS                   SEND_YN
+				 , REPL_STS AS           	BACK_REPL_STS          			/*--  교체상태 백업 */
+				 , ( SELECT UC.CONT_STS_CD FROM C11.C1BT_USE_CONT UC WHERE UC.USE_CONT_NUM = O.USE_CONT_NUM ) AS CONT_STS_CD /*--  사용계약상태 */
+				 , 'N' AS NOBILL_YN
+				 , '' AS PROD_CONT_SEQ
+				 , BULD_CENTER_CD as BULD_CENTER_CD
+				 , (SELECT BLD.CENTER_CD FROM  C31.C3AT_MTR MTR,C31.C3AT_BULD BLD WHERE MTR.BLD_NUM = BLD.BLD_NUM AND MTR.MTR_NUM = O.MTR_NUM) AS CHK_BULD_CENTER_CD
+				 , '' AS OTHER_PRICE
+				 , '' AS BATTERY_YN
+				 , '' AS MTRDISPLAY_YN
+				 , '' AS REMOTE_SYSTEM
+				 , (SELECT MEMO
+                      FROM C21.C2BT_MEMO_DTL
+                     WHERE MTR_NUM = O.MTR_NUM 
+			           AND MEMO_FLAG = '40' ) AS MEMO
+			    , NVL(AMI_OBJ_YN,'N') AS AMI_OBJ_YN
+-- 추가 컬럼
+,COMM_FIRM --통신번호
+,COMM_NUM -- 통신사
+ 		      FROM C31.C3BT_MTR_REPL_OBJ_CRT O
+  			 WHERE O.CENTER_CD = #center_cd#
+			없으면 전체검색으로 가게 저거 두개 없애기 나머지 쿼리도 동일
+  			   AND O.AREA in #area#
+		               AND O.TOWN in #town#
+			   AND MTR_KIND = #mtr_kind#
+			   AND O.MTR_GRD < 10 
+			   AND O.REPL_OCCU_FLAG = '10'
+			   AND NVL(O.SAND_YN,'N') <> 'Y'
+			   AND O.OBJ_CRT_YMD = TO_CHAR(SYSDATE,'yyyymmdd') 
+		       AND CASE WHEN TO_CHAR(SYSDATE,'MM') IN ('11','12') THEN CASE WHEN CENTER_CD IN ('') THEN O.MTR_VALID_YM
+ 		                                                                    ELSE 'FAIL' END
+ 		                ELSE 'FAIL'
+ 				    END NOT IN ( TO_CHAR(SYSDATE,'YYYY') + 1 || '01',  TO_CHAR(SYSDATE,'YYYY') + 1 || '02' )
+		     ORDER BY TO_NUMBER(REGEXP_REPLACE(ADDR1_M, '[^0-9,'' '']', ''))
+		            , NVL(REGEXP_REPLACE(ADDR1_M, '[^가-힝,a-z,A-Z,'' '']' , ''),'0')
+		            , TO_NUMBER(ADDR1_S)
+		            , ( SELECT HOUSE_NUM_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+		            , ( SELECT DONG_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+		            , ( SELECT MTR_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+
+
+// ReplOccuFlag 20일 경우 (민원교체)
+
+SELECT             MTR_NUM AS           		MTR_NUM          				/*--  계량기번호 */
+       			 , OBJ_CRT_YMD AS      	 		OBJ_CRT_YMD             		/*--  대상생성일자 */
+			     , REPL_OCCU_FLAG AS    		REPL_OCCU_FLAG   				/*--  교체발생구분 */
+			     , CENTER_CD AS           		CENTER_CD          				/*--  고객센터코드 */
+			     , PDA_REPL_JOB_ITEM AS 	    PDA_REPL_JOB_ITEM          		/*--  PDA교체작업구분 */
+			     , INST_PLACE_NUM AS        	INST_PLACE_NUM          		/*--  설치장소번호 */
+			     , CITY AS           			CITY          					/*--  시도 */
+			     , AREA AS           			AREA          					/*--  시군구 */
+			     , TOWN AS           			TOWN          					/*--  읍면동 */
+			     , VILLAGE AS           		VILLAGE          				/*--  리 */
+			     , ADDR1_M AS           		ADDR1_M          				/*--  지번_본번 */
+			     , ADDR1_S AS           		ADDR1_S          				/*--  지번_부번 */
+			     , LOT_NUM_SECOND_ADDR AS   	LOT_NUM_SECOND_ADDR          	/*--  지번_보조주소 */
+			     , TRIM(CO_LIVE_NM) AS        	CO_LIVE_NM          			/*--  공동주택명 */
+			     , HOUSE_CNT AS           		HOUSE_CNT          				/*--  세대호수 */
+			     , TRIM(BLD_NM) AS           	BLD_NM          				/*--  건물명 */
+			     , DETA_FLOOR AS           		DETA_FLOOR          			/*--  세부층 */
+			     , LAW_TOWN AS					LAW_TOWN						/*--  법정동 */
+			     , NEW_ROAD_NM AS				NEW_ROAD_NM						/*--  도로명 */
+			     , NEW_ADDR_M AS				NEW_ADDR_M						/*--  새주소본번 */
+			     , NEW_ADDR_S AS				NEW_ADDR_S						/*--  새주소부번 */
+			     , CUST_NUM AS           		CUST_NUM          				/*--  고객번호 */
+			     , CUST_TYPE_CD AS            	CUST_TYPE_CD          			/*--  고객유형코드 */
+			     , CUST_NM AS           		CUST_NM          				/*--  고객명 */
+			     , FIRM_NM AS           		FIRM_NM          				/*--  업체상호명 */
+			     , BIZ_REGI_NUM AS          	BIZ_REGI_NUM          			/*--  사업자번호 */
+			     , SOC_NUM AS           		SOC_NUM          				/*--  주민번호 */
+			     , REPRE_NM AS           		REPRE_NM          				/*--  대표자명 */
+			     , CP_DDD AS           			CP_DDD          				/*--  휴대폰_식별번호 */
+			     , CP_EXN AS           			CP_EXN          				/*--  휴대폰_국번 */
+			     , CP_NUM AS           			CP_NUM          				/*--  휴대폰_번호 */
+			     , OWNHOUSE_TEL_DDD AS      	OWNHOUSE_TEL_DDD          		/*--  자택전화_식별번호 */
+			     , OWNHOUSE_TEL_EXN AS      	OWNHOUSE_TEL_EXN          		/*--  자택전화_국번 */
+			     , OWNHOUSE_TEL_NUM AS      	OWNHOUSE_TEL_NUM          		/*--  자택전화_번호 */
+			     , FIRM_TEL_DDD AS          	FIRM_TEL_DDD          			/*--  회사전화_식별번호 */
+			     , FIRM_TEL_EXN AS          	FIRM_TEL_EXN          			/*--  회사전화_국번 */
+			     , FIRM_TEL_NUM AS          	FIRM_TEL_NUM          			/*--  회사전화_번호 */
+			     , USE_CONT_NUM AS          	USE_CONT_NUM          			/*--  사용계약번호 */
+			     , PROD_CD AS           		PROD_NM          				/*--  상품명 */
+			     , CONT_YMD AS           		CONT_YMD          				/*--  계약일자 */
+			     , CNL_YMD AS           		CNL_YMD          				/*--  해지일자 */
+			     , MTR_ID_NUM AS           		MTR_ID_NUM          			/*--  계량기기물번호 */
+			     , MTR_MODEL_CD AS          	MTR_MODEL_CD          			/*--  계량기모델코드 */
+			     , TO_CHAR(MTR_GRD) AS        	MTR_GRD          				/*--  계량기등급 */
+			     , MTR_FORM AS           		MTR_FORM          				/*--  계량기형식 */
+			     , MTR_TYPE AS           		MTR_TYPE          				/*--  계량기타입 */
+			     , MTR_REMOTE_FLAG AS       	MTR_REMOTE_FLAG          		/*--  계량기원격구분 */
+			     , MTR_KIND AS           		MTR_KIND          				/*--  계량기종류 */
+			     , MTR_FORM_APPRO_YN AS     	MTR_FORM_APPRO_YN          		/*--  계량기형식승인여부 */
+			     , MTR_DIGIT_CNT AS         	MTR_DIGIT_CNT          			/*--  계량기자릿수 */
+			     , MTR_NEW_FIX_FLAG AS      	MTR_NEW_FIX_FLAG          		/*--  계량기신수리구분 */
+			     , FIX_FIRM_NM_CD AS        	FIX_FIRM_NM_CD          		/*--  수리업체코드 */
+			     , MTR_VALID_YM AS          	MTR_VALID_YM          			/*--  계량기유효년월 */
+			     , MTR_LOC_FLAG AS          	MTR_LOC_FLAG          			/*--  계량기위치구분 */
+			     , MTR_DETA_LOC AS          	MTR_DETA_LOC          			/*--  계량기상세위치 */
+			     , COMPENS_NUM AS           	COMPENS_NUM          			/*--  보정기번호 */
+			     , COMPENS_ID_NUM AS        	COMPENS_ID_NUM          		/*--  보정기기물번호 */
+			     , COMPENS_MODEL_CD AS      	COMPENS_MODEL_CD          		/*--  보정기모델코드 */
+			     , COMPENS_FLAG AS          	COMPENS_FLAG          			/*--  보정기구분 */
+			     , COMPENS_VALID_YM AS      	COMPENS_VALID_YM          		/*--  보정기유효년월 */
+			     , COMPENS_FORM_APPRO_YN AS 	COMPENS_FORM_APPRO_YN          	/*--  보정기형식승인여부 */
+			     , BEFO_INDI_VM AS          	BEFO_INDI_VM          			/*--  전월지침_VM */
+			     , BEFO_INDI_VA AS          	BEFO_INDI_VA          			/*--  전월지침_VA */
+			     , BEFO_INDI_VC AS          	BEFO_INDI_VC          			/*--  전월지침_VC */
+			     , REPL_STS AS           		REPL_STS          				/*--  교체상태  */
+			     , ZIP_NO1 AS           		ZIP_NO1          				/*--  우편번호1 */
+			     , ZIP_NO2 AS           		ZIP_NO2          				/*--  우편번호2 */
+			     , TO_CHAR(TEMPER) AS     		BEFO_TEMPER          		    /*--  온도 */
+			     , TO_CHAR(PRESS) AS     		BEFO_PRESS         	 			/*--  압력 */
+			     , TO_CHAR(REVIS_PARA) AS     	BEFO_REVIS_PARA         		/*--  계수 */
+			     , '' AS           				TEMPER          				/*--  온도 */
+			     , '' AS           				PRESS         	 				/*--  압력 */
+			     , '' AS           				REVIS_PARA         				/*--  계수 */
+			     , REVIS_FLAG AS           		REVIS_FLAG         				/*--  보정기유무 */
+			     , ( SELECT X.MAKER_NM FROM C31.C3AT_USE_MAKER X WHERE X.MAKER_FLAG = '40' AND X.MAKER_NUM = COMPENS_MAKER_NUM ) AS COMPENS_MAKER_NM
+				 , ( SELECT MTR.MTR_SUPPLY_STS FROM C31.C3AT_MTR MTR WHERE MTR.MTR_NUM = O.MTR_NUM ) AS MTR_SUPPLY_STS
+				 , 'N' AS SEND_YN
+				 , REPL_STS AS           		BACK_REPL_STS          			/*--  교체상태 백업 */
+				 , ( SELECT UC.CONT_STS_CD FROM C11.C1BT_USE_CONT UC WHERE UC.USE_CONT_NUM = O.USE_CONT_NUM ) AS CONT_STS_CD /*--  사용계약상태 */
+				 , 'N' AS NOBILL_YN
+				 , '' AS PROD_CONT_SEQ
+				 , BULD_CENTER_CD as BULD_CENTER_CD
+                 , (SELECT BLD.CENTER_CD FROM  C31.C3AT_MTR MTR,C31.C3AT_BULD BLD WHERE MTR.BLD_NUM = BLD.BLD_NUM AND MTR.MTR_NUM = O.MTR_NUM) AS CHK_BULD_CENTER_CD
+                 , '' AS OTHER_PRICE
+				 , '' AS BATTERY_YN
+				 , '' AS MTRDISPLAY_YN
+				 , '' AS REMOTE_SYSTEM
+				 , (SELECT MEMO
+                      FROM C21.C2BT_MEMO_DTL
+                     WHERE MTR_NUM = O.MTR_NUM 
+			           AND MEMO_FLAG = '40' ) AS MEMO
+				, NVL(AMI_OBJ_YN,'N') AS AMI_OBJ_YN	
+-- 추가 컬럼
+,COMM_FIRM --통신번호
+,COMM_NUM -- 통신사		           
+  			  FROM C31.C3BT_MTR_REPL_OBJ_CRT O
+   			 WHERE O.CENTER_CD = #center_cd#
+
+			없으면 전체검색으로 가게 저거 두개 없애기 나머지 쿼리도 동일
+                                         AND O.AREA in #area#
+               		   AND O.TOWN in #town#
+
+
+			   AND MTR_KIND like #mtr_kind#
+			   AND O.MTR_GRD < 10
+			   AND O.REPL_OCCU_FLAG = '20'  
+			   AND O.REPL_STS = '20'
+			   AND NVL(O.SAND_YN,'N') <> 'Y'
+			   AND CASE WHEN TO_CHAR(SYSDATE,'MM') IN ('11','12') THEN CASE WHEN CENTER_CD IN ('') THEN O.MTR_VALID_YM
+ 		                                                                    ELSE 'FAIL' END
+ 		                ELSE 'FAIL'
+ 				    END NOT IN ( TO_CHAR(SYSDATE,'YYYY') + 1 || '01',  TO_CHAR(SYSDATE,'YYYY') + 1 || '02' )
+			 ORDER BY TO_NUMBER(REGEXP_REPLACE(ADDR1_M, '[^0-9,'' '']', ''))
+			        , NVL(REGEXP_REPLACE(ADDR1_M, '[^가-힝,a-z,A-Z,'' '']' , ''),'0')
+			        , TO_NUMBER(ADDR1_S)
+			        , ( SELECT HOUSE_NUM_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+			        , ( SELECT DONG_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+			        , ( SELECT MTR_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+
+
+// ReplOccuFlag 30일 경우 (무전표교체)
+
+SELECT             MTR_NUM AS           		MTR_NUM          				/*--  계량기번호 */
+       			 , OBJ_CRT_YMD AS      	 		OBJ_CRT_YMD             		/*--  대상생성일자 */
+			     , REPL_OCCU_FLAG AS    		REPL_OCCU_FLAG   				/*--  교체발생구분 */
+			     , CENTER_CD AS           		CENTER_CD          				/*--  고객센터코드 */
+			     , '10' AS 						PDA_REPL_JOB_ITEM
+                 , INST_PLACE_NUM AS        	INST_PLACE_NUM          		/*--  설치장소번호 */
+			     , CITY AS           			CITY          					/*--  시도 */
+			     , AREA AS           			AREA          					/*--  시군구 */
+			     , TOWN AS           			TOWN          					/*--  읍면동 */
+			     , VILLAGE AS           		VILLAGE          				/*--  리 */
+			     , ADDR1_M AS           		ADDR1_M          				/*--  지번_본번 */
+			     , ADDR1_S AS           		ADDR1_S          				/*--  지번_부번 */
+			     , LOT_NUM_SECOND_ADDR AS   	LOT_NUM_SECOND_ADDR          	/*--  지번_보조주소 */
+			     , TRIM(CO_LIVE_NM) AS        	CO_LIVE_NM          			/*--  공동주택명 */
+			     , HOUSE_CNT AS           		HOUSE_CNT          				/*--  세대호수 */
+			     , TRIM(BLD_NM) AS           	BLD_NM          				/*--  건물명 */
+			     , DETA_FLOOR AS           		DETA_FLOOR          			/*--  세부층 */
+			     , LAW_TOWN						LAW_TOWN						/*--  법정동 */
+			     , NEW_ROAD_NM					NEW_ROAD_NM						/*--  도로명 */
+			     , NEW_ADDR_M					NEW_ADDR_M						/*--  새주소본번 */
+			     , NEW_ADDR_S					NEW_ADDR_S						/*--  새주소부번 */
+			     , CUST_NUM AS           		CUST_NUM          				/*--  고객번호 */
+			     , CUST_TYPE_CD AS            	CUST_TYPE_CD          			/*--  고객유형코드 */
+			     , CUST_NM AS           		CUST_NM          				/*--  고객명 */
+			     , FIRM_NM AS           		FIRM_NM          				/*--  업체상호명 */
+			     , '' 	   AS          			BIZ_REGI_NUM          			/*--  사업자번호 */
+                 , SOC_NUM AS           		SOC_NUM          				/*--  주민번호 */			     
+                 , '' AS           	REPRE_NM          					/*--  대표자명 */
+                 , CP_DDD AS           			CP_DDD          				/*--  휴대폰_식별번호 */
+			     , CP_EXN AS           			CP_EXN          				/*--  휴대폰_국번 */
+			     , CP_NUM AS           			CP_NUM          				/*--  휴대폰_번호 */
+			     , OWNHOUSE_TEL_DDD AS      	OWNHOUSE_TEL_DDD          		/*--  자택전화_식별번호 */
+			     , OWNHOUSE_TEL_EXN AS      	OWNHOUSE_TEL_EXN          		/*--  자택전화_국번 */
+			     , OWNHOUSE_TEL_NUM AS      	OWNHOUSE_TEL_NUM          		/*--  자택전화_번호 */
+			     , '' AS          FIRM_TEL_DDD          				/*--  회사전화_식별번호 */
+			     , '' AS          FIRM_TEL_EXN          				/*--  회사전화_국번 */
+			     , '' AS          FIRM_TEL_NUM          				/*--  회사전화_번호 */
+                 , USE_CONT_NUM AS          	USE_CONT_NUM          			/*--  사용계약번호 */
+			     , PROD_CD AS           		PROD_NM          				/*--  상품명 */
+			     , CONT_YMD AS           		CONT_YMD          				/*--  계약일자 */
+			     , CNL_YMD AS           		CNL_YMD          				/*--  해지일자 */
+			     , MTR_ID_NUM AS           		MTR_ID_NUM          			/*--  계량기기물번호 */
+			     , MTR_MODEL_CD AS          	MTR_MODEL_CD          			/*--  계량기모델코드 */
+			     , TO_CHAR(MTR_GRD) AS        	MTR_GRD          				/*--  계량기등급 */
+			     , MTR_FORM AS           		MTR_FORM          				/*--  계량기형식 */
+			     , MTR_TYPE AS           		MTR_TYPE          				/*--  계량기타입 */
+			     , MTR_REMOTE_FLAG AS       	MTR_REMOTE_FLAG          		/*--  계량기원격구분 */
+			     , MTR_KIND AS           		MTR_KIND          				/*--  계량기종류 */
+			     , MTR_FORM_APPRO_YN AS     	MTR_FORM_APPRO_YN          		/*--  계량기형식승인여부 */
+			     , MTR_DIGIT_CNT AS         	MTR_DIGIT_CNT          			/*--  계량기자릿수 */
+			     , MTR_NEW_FIX_FLAG AS      	MTR_NEW_FIX_FLAG          		/*--  계량기신수리구분 */
+			     , FIX_FIRM_NM_CD AS        	FIX_FIRM_NM_CD          		/*--  수리업체코드 */
+			     , MTR_VALID_YM AS          	MTR_VALID_YM          			/*--  계량기유효년월 */
+			     , MTR_LOC_FLAG AS          	MTR_LOC_FLAG          			/*--  계량기위치구분 */
+			     , MTR_DETA_LOC AS          	MTR_DETA_LOC          			/*--  계량기상세위치 */
+			     , COMPENS_NUM AS           	COMPENS_NUM          			/*--  보정기번호 */
+			     , COMPENS_ID_NUM AS        	COMPENS_ID_NUM          		/*--  보정기기물번호 */
+			     , COMPENS_MODEL_CD AS      	COMPENS_MODEL_CD          		/*--  보정기모델코드 */
+			     , COMPENS_FLAG AS          	COMPENS_FLAG          			/*--  보정기구분 */
+			     , COMPENS_VALID_YM AS      	COMPENS_VALID_YM          		/*--  보정기유효년월 */
+			     , COMPENS_FORM_APPRO_YN AS 	COMPENS_FORM_APPRO_YN          	/*--  보정기형식승인여부 */
+			     , BEFO_INDI_VM AS          	BEFO_INDI_VM          			/*--  전월지침_VM */
+			     , BEFO_INDI_VA AS          	BEFO_INDI_VA          			/*--  전월지침_VA */
+			     , BEFO_INDI_VC AS          	BEFO_INDI_VC          			/*--  전월지침_VC */
+			     , REPL_STS AS           		REPL_STS          				/*--  교체상태  */
+			     , ZIP_NO1 AS           		ZIP_NO1          				/*--  우편번호1 */
+			     , ZIP_NO2 AS           		ZIP_NO2          				/*--  우편번호2 */
+			     , TO_CHAR(TEMPER) AS     		BEFO_TEMPER          		    /*--  온도 */
+			     , TO_CHAR(PRESS) AS     		BEFO_PRESS         	 			/*--  압력 */
+			     , TO_CHAR(REVIS_PARA) AS     	BEFO_REVIS_PARA         		/*--  계수 */
+			     , '' AS           				TEMPER          				/*--  온도 */
+			     , '' AS           				PRESS         	 				/*--  압력 */
+			     , '' AS           				REVIS_PARA         				/*--  계수 */
+			     , REVIS_FLAG AS           		REVIS_FLAG         				/*--  보정기유무 */
+			     , '' AS 						COMPENS_MAKER_NM
+                 , ( SELECT MTR.MTR_SUPPLY_STS FROM C31.C3AT_MTR MTR WHERE MTR.MTR_NUM = O.MTR_NUM ) AS MTR_SUPPLY_STS
+				 , 'N' AS SEND_YN
+				 , REPL_STS AS           		BACK_REPL_STS          			/*--  교체상태 백업 */
+				 , ( SELECT UC.CONT_STS_CD FROM C11.C1BT_USE_CONT UC WHERE UC.USE_CONT_NUM = O.USE_CONT_NUM ) AS CONT_STS_CD /*--  사용계약상태 */
+				 , 'Y' AS NOBILL_YN
+				 , ( SELECT PROD_CONT_SEQ FROM C11.C1BT_PROD_CONT PC WHERE PC.MTR_NUM = O.MTR_NUM AND  PC.CNL_YMD || PC.PROD_CONT_YMD = (SELECT MAX(X.CNL_YMD || X.PROD_CONT_YMD) FROM C11.C1BT_PROD_CONT X WHERE X.MTR_NUM = PC.MTR_NUM)) AS PROD_CONT_SEQ
+				 , '' as BULD_CENTER_CD
+				 , (SELECT BLD.CENTER_CD
+                   FROM  C31.C3AT_MTR MTR
+                        ,C31.C3AT_BULD BLD
+                   WHERE   MTR.BLD_NUM = BLD.BLD_NUM
+                    AND     MTR.MTR_NUM = O.MTR_NUM) AS CHK_BULD_CENTER_CD
+                 , '' AS OTHER_PRICE
+				 , '' AS BATTERY_YN
+				 , '' AS MTRDISPLAY_YN
+				 , '' AS REMOTE_SYSTEM
+				 , (SELECT MEMO
+                      FROM C21.C2BT_MEMO_DTL
+                     WHERE MTR_NUM = O.MTR_NUM 
+			           AND MEMO_FLAG = '40' ) AS MEMO
+				 , '' AS AMI_OBJ_YN		
+-- 추가 컬럼
+,COMM_FIRM --통신번호
+,COMM_NUM -- 통신사	           
+  			  FROM C31.C3BT_NO_BILL_MTR_REPL_OBJ O
+   			 WHERE O.CENTER_CD = #center_cd#
+			   없으면 전체검색으로 가게 저거 두개 없애기 나머지 쿼리도 동일
+                                         AND O.AREA in #area#
+               		   AND O.TOWN in #town#
+
+			   AND O.MTR_GRD < 10
+			   AND O.REPL_OCCU_FLAG = '20'
+			   AND NVL(O.SEND_YN,'N') <> 'Y'
+			   AND CASE WHEN TO_CHAR(SYSDATE,'MM') IN ('11','12') THEN CASE WHEN CENTER_CD IN ('') THEN O.MTR_VALID_YM
+ 		                                                                    ELSE 'FAIL' END
+ 		                ELSE 'FAIL'
+ 				    END NOT IN ( TO_CHAR(SYSDATE,'YYYY') + 1 || '01',  TO_CHAR(SYSDATE,'YYYY') + 1 || '02' )
+			 ORDER BY TO_NUMBER(REGEXP_REPLACE(ADDR1_M, '[^0-9,'' '']', ''))
+			        , NVL(REGEXP_REPLACE(ADDR1_M, '[^가-힝,a-z,A-Z,'' '']' , ''),'0')
+			        , TO_NUMBER(ADDR1_S)
+			        , ( SELECT HOUSE_NUM_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+			        , ( SELECT DONG_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+			        , ( SELECT MTR_ORD FROM C41.C4AT_CORS WHERE DUTY_FLAG = '20' AND MTR_NUM = O.MTR_NUM AND INST_PLACE_NUM = O.INST_PLACE_NUM )
+

@@ -1,0 +1,110 @@
+교체목록 (118p)
+api 호출 - /api/receive/mtrChage/meterReplaceMentObjInfo 
+
+Front 
+
+1.목록 필터
+1) 항목 
+ (1) 전체 : 수신받은 전체 업무 목록 
+ (2) 미교체
+     - 처리결과 : “미완료” 상태 업무 목록 : REPL_OCCU_FLAG = '10' AND (SEND_YN == 'N' OR SEND_YN IS NULL) AND (LENGTH(REPL_NOT_PERMIT_WHY) == 0 OR REPL_STS != '30' AND NOBILL_YN ='N'
+     - 교체불가 건도 포함 : LENGTH(REPL_NOT_PERMIT_WHY) > 0 OR REPL_STS = '30'
+ (3) 교체불가 
+    - 교체불가 처리한 업무(세대) 목록 : LENGTH(REPL_NOT_PERMIT_WHY) > 0 OR REPL_STS = '30'
+
+위에 조건으로 카운팅하기(전체, 미교체, 교체불가)
+
+아래 데이터 참조하여 데이터 조합
+MTR_NUM          			/*--  계량기번호 */
+OBJ_CRT_YMD             		/*--  대상생성일자 */
+REPL_OCCU_FLAG   			/*--  교체발생구분 */
+CENTER_CD          			/*--  고객센터코드 */
+PDA_REPL_JOB_ITEM          		/*--  PDA교체작업구분 */
+INST_PLACE_NUM          		/*--  설치장소번호 */
+CITY          			/*--  시도 */
+AREA          			/*--  시군구 */
+TOWN          			/*--  읍면동 */
+VILLAGE          			/*--  리 */
+ADDR1_M          			/*--  지번_본번 */
+ADDR1_S          			/*--  지번_부번 */
+LOT_NUM_SECOND_ADDR          	/*--  지번_보조주소 */
+CO_LIVE_NM          		/*--  공동주택명 */
+HOUSE_CNT          		/*--  세대호수 */
+BLD_NM          			/*--  건물명 */
+DETA_FLOOR          		/*--  세부층 */
+LAW_TOWN			/*--  법정동 */
+NEW_ROAD_NM			/*--  도로명 */
+NEW_ADDR_M			/*--  새주소본번 */
+NEW_ADDR_S			/*--  새주소부번 */
+CUST_NUM          			/*--  고객번호 */
+CUST_TYPE_CD          		/*--  고객유형코드 */
+CUST_NM          			/*--  고객명 */
+FIRM_NM          			/*--  업체상호명 */
+BIZ_REGI_NUM          		/*--  사업자번호 */
+SOC_NUM          			/*--  주민번호 */
+REPRE_NM          			/*--  대표자명 */
+CP_DDD          			/*--  휴대폰_식별번호 */
+CP_EXN          			/*--  휴대폰_국번 */
+CP_NUM          			/*--  휴대폰_번호 */
+OWNHOUSE_TEL_DDD          	/*--  자택전화_식별번호 */
+OWNHOUSE_TEL_EXN          		/*--  자택전화_국번 */
+OWNHOUSE_TEL_NUM          	/*--  자택전화_번호 */
+FIRM_TEL_DDD          		/*--  회사전화_식별번호 */
+FIRM_TEL_EXN          		/*--  회사전화_국번 */
+FIRM_TEL_NUM          		/*--  회사전화_번호 */
+USE_CONT_NUM          		/*--  사용계약번호 */
+PROD_NM          			/*--  상품명 */
+CONT_YMD          			/*--  계약일자 */
+CNL_YMD          			/*--  해지일자 */
+MTR_ID_NUM          		/*--  계량기기물번호 */
+MTR_MODEL_CD          		/*--  계량기모델코드 */
+MTR_GRD          			/*--  계량기등급 */
+MTR_FORM          			/*--  계량기형식 */
+MTR_TYPE          			/*--  계량기타입 */
+MTR_REMOTE_FLAG          		/*--  계량기원격구분 */
+MTR_KIND          			/*--  계량기종류 */
+MTR_FORM_APPRO_YN          	/*--  계량기형식승인여부 */
+MTR_DIGIT_CNT          		/*--  계량기자릿수 */
+MTR_NEW_FIX_FLAG          		/*--  계량기신수리구분 */
+FIX_FIRM_NM_CD          		/*--  수리업체코드 */
+MTR_VALID_YM          		/*--  계량기유효년월 */
+MTR_LOC_FLAG          		/*--  계량기위치구분 */
+MTR_DETA_LOC          		/*--  계량기상세위치 */
+COMPENS_NUM          		/*--  보정기번호 */
+COMPENS_ID_NUM          		/*--  보정기기물번호 */
+COMPENS_MODEL_CD          	/*--  보정기모델코드 */
+COMPENS_FLAG          		/*--  보정기구분 */
+COMPENS_VALID_YM          		/*--  보정기유효년월 */
+COMPENS_FORM_APPRO_YN          	/*--  보정기형식승인여부  */
+BEFO_INDI_VM          		/*--  전월지침_VM */
+BEFO_INDI_VA          		/*--  전월지침_VA */
+BEFO_INDI_VC          		/*--  전월지침_VC */
+REPL_STS          			/*--  교체상태 */
+ZIP_NO1          			/*--  우편번호1 */
+ZIP_NO2          			/*--  우편번호2 */
+BEFO_TEMPER          		/*--  온도 */
+BEFO_PRESS         	 		/*--  압력 */
+BEFO_REVIS_PARA         		/*--  계수 */
+TEMPER          			/*--  온도 */
+PRESS         	 		/*--  압력 */
+REVIS_PARA         			/*--  계수 */
+REVIS_FLAG         			/*--  보정기유무 */
+BACK_REPL_STS          		/*--  교체상태 백업 */
+CONT_STS_CD			/*--  사용계약상태 */	
+
+
+
+교체목록 > 교체작업(125p ~ 128p) 
+
+저장 : /api/send/mtrChage/mtrChangeRsltReg 호출
+교체 결과 사진 전송 (철거계량기, 설치계량기, 철거보정기, 설치보정기, 교체불가 사진)
+- /api/send/mtrChage/mtrChangeRsltPhotoReg 호출
+
+
+
+
+
+
+
+
+			 

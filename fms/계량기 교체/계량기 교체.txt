@@ -1,0 +1,119 @@
+p115. - (p.161 파라미터는 수신조건 설정 참고해서 보내기)
+계량기 교체 페이지 접근
+1. 가정용-정기 : 
+  - 가정용 노후 교체 대상리스트 
+  - api 를 호출 한다 -> /api/receive/mtrChage/meterReplaceMentObjInfo
+  - center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (노후교체(10))
+
+2. 가정용-비정기 
+  - 가정용 민원 교체 대상리스트 
+  - api 를 호출 한다 -> /api/receive/mtrChage/meterReplaceMentObjInfo
+  - center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (민원교체(20))
+
+3. 대용량-노후
+ - 대용량 노후 교체 대상리스트
+  - api 를 호출 한다 -> /api/receive/mtrChage/meterReplaceMentBigObjInfo
+  - center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (민원교체(10))
+
+4. 대용량-민원 
+ - 대용량 민원 교체 대상리스트
+ - api 를 호출 한다 -> /api/receive/mtrChage/meterReplaceMentBigObjInfo
+ - center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (민원교체(20))
+
+5. 교체대상 - 분석중
+  - 수신 받는 데이터 통계정보 
+  - 당일수신 받은 데이터 없을 경우 안내메시지 제공
+
+6. 무전표교체
+ - MIS에서 생성된 대상 리스트
+ - 교체작업화면은 노후교체와 동일
+ - api 를 호출 한다 -> /api/receive/mtrChage/meterReplaceMentObjInfo
+ - center_cd (11) , list -> area (강서구), list -> town(방화2동) , replOccuFlag (무전표교체(30))
+
+
+교체 목록
+상단
+ (1) 전체 : 수신받은 전체 업무 목록
+ (2) 미교체 
+     - 처리결과 : “미완료” 상태 업무 목록 -> (SEND_YN == 'N' OR SEND_YN IS NULL) AND REPL_NOT_PERMIT_WHY == 0 OR REPL_STS != '30') AND NOBILL_YN ='N'
+     - 교체불가 건도 포함 
+ (3) 교체불가 
+    - 교체불가 처리한 업무(세대) 목록 -> REPL_NOT_PERMIT_WHY > 0 OR REPL_STS = '30' 이면 교체 불가
+
+- 교체불가 클릭시 교체 불가 화면 (p146)
+- 방문일자 - 20230912
+- 불가사유 - commonCode - codeId : C30125
+- 사진촬영 - base64형태로 최대 3개까지 가능
+
+parameter 
+ ex) 스웨거 참조 obj_crt_ymd, mtr_num, visit_ymd, repl_not_permit_why, employeeId, mtr_num
+- 저장시 /api/send/mtrChage/mtrNotChangeReg 호출
+
+
+
+교체목록 > 교체작업 (p125) 송신 : api/send/mtrChage/mtrChangeRsltReg
+
+- 철거계량기 : 수신 데이터 노출
+- 설치계량기 : 직접입력은 불가 기물번호 추출, 지침값 추출, 사진촬영 용도
+  기물번호 추출 시 - 원격여부, 종류, 상태 값 자동으로 선택 입력됨
+   
+등급(MTR_GRD) 모델(MTR_MODEL_CD) 타입(MTR_TYPE) 제조사(바코드체계 참고)
+----------------------------------------------------
+ 등급 - 바코드 4번째 숫자 자리 
+ 번호 등급
+ 2    2.5
+ 3    4 
+ 4    6
+ 5    10
+----------------------------------------------------
+ 모델 - ?????
+----------------------------------------------------
+ 타입 - 바코드 5번째 자리
+ 바코드 번호   타입 코드    바코드명
+ 1             20          우
+ 2             10          좌
+----------------------------------------------------
+ 제조사 - 바코드 3번째 숫자 자리 
+ 1 극동전기
+ 2 위지트
+ 3 대성계전
+ 4 대한가스
+ 5 옴니시스템
+ 6 대명아이티
+ 7 신한정밀
+ 8 동양계기
+ 9 지텍산업
+ 0 피에스텍
+----------------------------------------------------
+
+자리(MTR_DIGIT_CNT)
+
+종류, 원격여부, 상태
+  1) 종류 : C30087 
+  2) 원격여부 : C30008
+  3) 상태 : C30005
+
+서버 - ?????
+
+유효기간(MTR_VALID_YM)
+
+교체구분 : C30009
+
+계량기 지침
+ -전월지침_VC(BEFO_INDI_VC)
+ -전월지침_VA(BEFO_INDI_VA)
+ -전월지침_VM( BEFO_INDI_VM)
+
+ 사진 - base64형태로
+ 서명 - base64형태로
+
+
+
+교체불가 사유 - api/send/mtrChage/mtrChangeRsltPhotoReg
+
+swagger참조
+
+방문일자 - (VISIT_YMD)
+불가사유 - (REPL_NOT_PERMIT_WHY)
+사진촬영 - base64
+
