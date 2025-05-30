@@ -44,6 +44,25 @@
 }
 ```
 
+response
+
+```json
+[
+  {
+    "area": "강서구",
+    "town": "화곡1동",
+    "newRoadNm": "곰달래로19가길",
+    "compxFlagNm": "* 신성리치빌"
+  },
+  {
+    "area": "관악구",
+    "town": "서원동",
+    "newRoadNm": "신원로",
+    "compxFlagNm": "삼모타워 "
+  }
+]
+```
+
 ---
 
 ## /api/receive/mtrChage/meterReplaceMentBigObjInfo
