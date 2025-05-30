@@ -9,15 +9,17 @@
 ```json
 {
   "centerCd": "11", // 센터번호
-  "area": "강서구", // 시군구
+  "area": "강서구", // 시군구                      (목록? init코드에서?)
   "employeeId": "200710006", // 사번
   "replOccuFlag": "10", // 교체발생구분
-  "town": "", // 읍면동
-  "newRoadNm": "", // 새로운 도로명
-  "compxFlagNm": "", // 복합구분명
-  "buldCenterCd": "", // 건물센터코드
-  "fromYmd": "", // 시작일자
-  "toYmd": "" // 종료일자
+  "town": "", // 읍면동                            (목록? init코드에서?)
+  "newRoadNm": "", // 새로운 도로명 : 입력이 필요함. (목록? init코드에서?)
+  "compxFlagNm": "", // 단지                        (목록? init코드에서?)
+  "buldCenterCd": "", // 건물센터코드               (?????)
+  "fromYmd": "", // 유효기간 From
+  "toYmd": "" // 유효기간 To
+
+  // 계량기 종류 ?
 }
 ```
 
