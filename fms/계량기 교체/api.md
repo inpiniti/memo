@@ -27,13 +27,13 @@
 
 ---
 
-## api/management/transmission/setLargemeterAddrdata
+## /api/management/transmission/setLargemeterAddrdata
 
 **대용량 계량기교체 설정 주소 조회(정기)**
 
 ---
 
-## api/management/transmission/setmeterAddrdata
+## /api/management/transmission/setmeterAddrdata
 
 **계량기 교체 설정 주소 조회(정기)**
 
