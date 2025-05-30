@@ -23,6 +23,8 @@
 }
 ```
 
+![alt text](image.png)
+
 ---
 
 ## /api/receive/mtrChage/meterReplaceMentBigObjInfo
@@ -37,6 +39,8 @@
   "replOccuFlag": "10" // 교체발생구분
 }
 ```
+
+![alt text](image-1.png)
 
 ---
 
