@@ -27,6 +27,25 @@
 
 ---
 
+## api/management/transmission/setLargemeterAddrdata
+
+**대용량 계량기교체 설정 주소 조회(정기)**
+
+---
+
+## api/management/transmission/setmeterAddrdata
+
+**계량기 교체 설정 주소 조회(정기)**
+
+```json
+{
+  "centerCd": "11", // 센터번호
+  "employeeId": "200710006" // 사번
+}
+```
+
+---
+
 ## /api/receive/mtrChage/meterReplaceMentBigObjInfo
 
 **대용량 계량기 교체목록 (노후, 민원)**
