@@ -1,0 +1,25 @@
+C:\Users\USER\Documents\본지사 앱\Java_1.8.0_181\jdk1.8.0_181
+
+3. Maven 빌드
+서버를 돌리기 전, 리소스를 포함한 WAR 파일을 먼저 만들어야 합니다.
+
+1. VS Code 아래쪽 MAVEN 패널을 엽니다.
+ 2. scgfms 프로젝트를 확장합니다.
+ 3. Profiles에서 local이 체크되어 있는지 확인합니다.
+ 4. Lifecycle에서 clean을 실행한 뒤, install을 실행합니다.
+ 5. 성공하면 target/scgfms_web.war 파일이 생성됩니다.
+
+4. Tomcat 서버 추가 및 실행
+ 1. VS Code 왼쪽 하단에 SERVERS 패널(Community Server Connectors)이 생깁니다.
+ 2. No servers found. Click to create a new server...를 클릭합니다.
+ 3. PC에 설치된 Apache Tomcat의 경로를 선택하여 서버를 추가합니다. (설치된 Tomcat이 없다면 먼저 다운로드/압축해제가 필요합니다.)
+ 4. 추가된 Tomcat 서버에서 우클릭 후 Add Deployment를 선택합니다.
+ 5. 위에서 빌드한 target/scgfms_web.war 파일을 선택합니다.
+ 6. 서버를 우클릭하여 Start Server를 누르면 실행됩니다.
+
+5. 환경 변수 추가 (필요시)
+- web.xml 에서 사용하는 ${bizmobCustHome} 등의 변수 때문에 서버 시작 시 에러가 날 수 있습니다.
+- Tomcat 설정 파일(server.xml)이나 VS Code의 서버 런타임 설정에서 JVM argument로 -DbizmobCustHome=경로를 추가해 주어야 정상 작동할 수 있습니다.
+- 팁: 만약 설정이 복잡하다면, mvn 명령어를 통해 생성된 WAR 파일을 기존에 잘 돌아가는 Tomcat의 webapps 폴더에 직접 복사해 넣는 것이 가장 확실할 수 있습니다.
+
+진행하시다가 막히는 단계(예: Maven 빌드 에러 등)가 있으면 알려주세요! 구체적인 로그를 보여주시면 더 정확히 도와드릴 수 있습니다.
